@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 1010" role="img" aria-label="Simple Code logo">
+  <path d="M85 0H920a85 85 0 0 1 85 85V258H0V85A85 85 0 0 1 85 0Z" fill="#000"/>
+  <circle cx="611" cy="143" r="29" fill="#fff"/><circle cx="719" cy="143" r="29" fill="#fff"/><circle cx="828" cy="143" r="29" fill="#fff"/>
+  <path d="M4 312H1005V923a82 82 0 0 1-82 82H86a82 82 0 0 1-82-82Z" fill="#000"/>
+  <g fill="none" stroke="#fff" stroke-width="66" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="310,565 215,645 318,750"/>
+    <polyline points="700,565 785,645 683,750"/>
+    <line x1="500" y1="650" x2="432" y2="787"/>
+  </g>
+  <g font-family="Nunito, 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif" font-weight="900" text-anchor="middle" paint-order="stroke" stroke-linejoin="round">
+    <text x="502" y="545" font-size="168" fill="#fff" stroke="#000" stroke-width="20">Simple</text>
+    <text x="502" y="642" font-size="138" fill="#fff" stroke="#000" stroke-width="34">Code</text>
+    <text x="502" y="642" font-size="138" fill="#000" stroke="#fff" stroke-width="14">Code</text>
+  </g>
+</svg>

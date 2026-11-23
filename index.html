@@ -1,0 +1,2302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simple Code</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c0e; --panel:#151518; --panel2:#1c1c20; --line:#2a2a31; --line2:#34343c;
+  --text:#ececf1; --muted:#9b9ba8; --dim:#6b6b78;
+  --white:#ffffff; --ok:#7ee2a8; --warn:#ffcf6b; --err:#ff6b7a; --errbg:#2a1216;
+  --exbg:#141a24; --exline:#3b5b8c; --ex:#a9c4ec;
+  --k-kw:#82aaff; --k-io:#ffc777; --k-type:#4fd6be; --k-str:#c3e88d; --k-num:#ff966c;
+  --k-com:#636da6; --k-dir:#fca7ea; --k-fn:#86e1fc;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ui:"Nunito",system-ui,-apple-system,sans-serif;
+  --lh:21px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--ui);display:flex;flex-direction:column;min-height:100vh}
+button,select,input{font-family:inherit}
+
+/* header */
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#141417,#0f0f12)}
+header .brandlogo{width:50px;height:50px;flex:none;background:#fff;border-radius:12px;padding:5px}
+#title{color:var(--muted);font-weight:800;font-size:18px}
+.brand h1{margin:0;font-size:24px;font-weight:900;letter-spacing:.2px;line-height:1}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:13px;font-weight:600}
+.chip{font-family:var(--mono);font-size:11px;border:1px solid var(--line2);border-radius:999px;padding:3px 9px;color:var(--muted);white-space:nowrap}
+header .spacer{flex:1}
+.seg{display:inline-flex;background:#0a0a0c;border:1px solid var(--line2);border-radius:10px;padding:3px;gap:2px}
+.seg button img{width:18px;height:auto;vertical-align:-4px;margin-right:6px}
+.seg button{border:0;background:none;color:var(--muted);font-weight:900;font-size:13px;padding:6px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:#fff;color:#000}
+.seg button:not(.on):hover{color:var(--text);background:#1d1d22}
+@media (max-width:560px){ header{flex-wrap:wrap} .chip{display:none} }
+
+/* toolbar */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);background:var(--panel2);color:var(--text);padding:7px 12px;border-radius:9px;font-size:14px;font-weight:800;cursor:pointer}
+.btn:hover{border-color:#4a4a55;background:#24242a}
+.btn.run{background:var(--white);color:#000;border-color:var(--white);padding:7px 16px}
+.btn.run:hover{background:#dcdcdc}
+.btn.run.stop{background:var(--err);border-color:var(--err);color:#fff}
+.toolbar select{background:var(--panel2);color:var(--text);border:1px solid var(--line2);border-radius:9px;padding:7px 10px;font-size:14px;font-weight:700}
+.fname{background:var(--bg);color:var(--text);border:1px solid var(--line2);border-radius:9px;padding:7px 10px;font-family:var(--mono);font-size:13px;width:160px}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:14px;cursor:pointer;user-select:none;padding:4px 6px}
+.toggle input{display:none}
+.toggle .sw{width:36px;height:20px;border-radius:99px;background:#3a3a44;position:relative;transition:.15s}
+.toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.toggle input:checked + .sw{background:#3d7bdc}
+.toggle input:checked + .sw::after{left:18px}
+.toolbar .grow{flex:1}
+.hint{color:var(--dim);font-size:12px;font-weight:700}
+
+/* main layout */
+main{flex:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);min-height:0}
+.pane{display:flex;flex-direction:column;min-height:0;min-width:0}
+.pane + .pane{border-left:1px solid var(--line)}
+.pane-head{display:flex;align-items:center;gap:6px;padding:0 10px;height:38px;border-bottom:1px solid var(--line);background:var(--panel);font-size:13px;font-weight:800;color:var(--muted)}
+.tab{background:none;border:0;color:var(--muted);font-weight:800;font-size:13px;padding:10px 10px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--text);border-bottom-color:var(--white)}
+.pane-head .grow{flex:1}
+.small{font-size:12px;padding:4px 9px;border-radius:7px}
+
+/* editor */
+.editor{position:relative;flex:1;display:flex;min-height:300px;background:#101013;overflow:hidden}
+.gutter{width:48px;flex:none;background:#0e0e11;border-right:1px solid var(--line);overflow:hidden;position:relative}
+.gutter-inner{position:absolute;left:0;right:0;top:0;padding:12px 0;font-family:var(--mono);font-size:13px;line-height:var(--lh);color:#4b4b57;text-align:right}
+.gutter-inner div{padding-right:10px}
+.gutter-inner div.err{color:#fff;background:var(--err)}
+.code{position:relative;flex:1;min-width:0}
+.code pre,.code textarea{position:absolute;inset:0;margin:0;padding:12px 14px;font-family:var(--mono);font-size:14px;line-height:var(--lh);white-space:pre;tab-size:4;border:0;overflow:auto;letter-spacing:0;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+.code pre{pointer-events:none;color:var(--text);overflow:hidden}
+.code textarea{background:transparent;color:transparent;caret-color:#fff;resize:none;outline:none;-webkit-text-fill-color:transparent}
+.code textarea::selection{background:rgba(130,170,255,.28);-webkit-text-fill-color:transparent}
+.errband{position:absolute;left:0;right:0;height:var(--lh);background:rgba(255,107,122,.14);border-left:3px solid var(--err);pointer-events:none;display:none}
+.drop{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);font-size:20px;font-weight:900;z-index:5;border:2px dashed #fff}
+.editor.dragging .drop{display:flex}
+.status{display:flex;gap:14px;padding:5px 12px;border-top:1px solid var(--line);background:var(--panel);font-family:var(--mono);font-size:11px;color:var(--dim)}
+.status .grow{flex:1}
+.t-kw{color:var(--k-kw)} .t-io{color:var(--k-io);font-weight:600} .t-type{color:var(--k-type)}
+.t-str{color:var(--k-str)} .t-num{color:var(--k-num)} .t-com{color:var(--k-com);font-style:italic}
+.t-dir{color:var(--k-dir)} .t-fn{color:var(--k-fn)}
+
+/* console */
+.console{flex:1;overflow:auto;padding:12px 14px 30px;background:#09090b;font-family:var(--mono);font-size:13.5px;line-height:1.55;min-height:260px}
+.c-out{white-space:pre-wrap;word-break:break-word;color:#f4f4f6}
+.c-sys{color:var(--dim);font-size:12px;margin:2px 0 6px}
+.c-sys.done{color:var(--ok);margin-top:10px}
+.c-ex{font-family:var(--ui);font-size:13.5px;font-weight:600;color:var(--ex);background:var(--exbg);border-left:3px solid var(--exline);border-radius:0 7px 7px 0;padding:5px 10px;margin:4px 0;display:flex;gap:8px;align-items:flex-start}
+.c-ex.quiet{color:#7f93b3;font-style:italic}
+.c-ex .vars{color:#7f93b3}
+.c-ex code{font-family:var(--mono);font-size:12.5px;background:rgba(255,255,255,.07);padding:0 4px;border-radius:4px;color:#dfe8ff}
+.lnk{flex:none;font-family:var(--mono);font-size:11px;font-weight:600;color:#cfe0ff;background:#24324a;border:0;border-radius:5px;padding:2px 6px;cursor:pointer;margin-top:1px}
+.lnk:hover{background:#34507a}
+.c-warn{font-family:var(--ui);font-weight:700;color:var(--warn);margin:6px 0;font-size:13.5px}
+.c-in{display:flex;align-items:center;gap:8px;margin:6px 0;padding:6px 8px;border:1px dashed #5b5b68;border-radius:8px;background:#111116}
+.c-in label{font-family:var(--ui);font-weight:800;color:var(--k-io);font-size:13px;white-space:nowrap}
+.c-in input{flex:1;min-width:60px;background:#000;border:1px solid var(--line2);color:#fff;border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:14px;outline:none}
+.c-in input:focus{border-color:#fff}
+.c-echo{color:var(--k-io)}
+.c-err{font-family:var(--ui);border:1px solid #6a2630;background:var(--errbg);border-radius:10px;padding:12px 14px;margin:10px 0}
+.c-err h3{margin:0 0 6px;font-size:16px;font-weight:900;color:#ffb3bc}
+.c-err .where{font-size:12px;color:#ff98a4;font-weight:800;margin-bottom:8px}
+.c-err pre{margin:6px 0 10px;background:#000;border-radius:7px;padding:8px 10px;font-family:var(--mono);font-size:13px;color:#eee;overflow:auto}
+.c-err .caret{color:var(--err)}
+.c-err .lab{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#ff98a4;font-weight:900;margin-top:6px}
+.c-err p{margin:2px 0 4px;font-size:14px;font-weight:600;color:#f3d6da;line-height:1.45}
+.c-err p code,.c-err p b{font-family:var(--mono);font-size:13px;color:#fff}
+.empty{color:var(--dim);font-family:var(--ui);font-weight:700;font-size:14px;line-height:1.6}
+.empty b{color:var(--muted)}
+
+/* cheat sheet */
+.sheet{flex:1;overflow:auto;padding:16px 18px 40px;background:#0b0b0d;display:none}
+.sheet h2{font-size:18px;font-weight:900;margin:18px 0 8px}
+.sheet h2:first-child{margin-top:0}
+.sheet p{color:var(--muted);font-weight:600;font-size:14px;margin:4px 0 10px;line-height:1.5}
+.sheet table{width:100%;border-collapse:collapse;font-size:13px}
+.sheet th{text-align:left;color:var(--muted);font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.5px;padding:6px 8px;border-bottom:1px solid var(--line2)}
+.sheet td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-weight:700}
+.sheet td code{font-family:var(--mono);font-size:12.5px;white-space:pre-wrap}
+.sheet td.old code{color:#8f8f9b}
+.sheet td.new code{color:var(--k-str)}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pills code{font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 7px;color:#dfe8ff}
+
+@media (max-width:860px){
+  main{grid-template-columns:1fr}
+  .pane + .pane{border-left:0;border-top:1px solid var(--line)}
+  .editor{min-height:340px}
+  .console,.sheet{min-height:420px}
+  header{padding:10px 16px} .toolbar{padding:10px 16px}
+  .brand p{display:none}
+  .hint{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <svg class="brandlogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 1010" role="img" aria-label="Simple Code logo">
+  <path d="M85 0H920a85 85 0 0 1 85 85V258H0V85A85 85 0 0 1 85 0Z" fill="#000"/>
+  <circle cx="611" cy="143" r="29" fill="#fff"/><circle cx="719" cy="143" r="29" fill="#fff"/><circle cx="828" cy="143" r="29" fill="#fff"/>
+  <path d="M4 312H1005V923a82 82 0 0 1-82 82H86a82 82 0 0 1-82-82Z" fill="#000"/>
+  <g fill="none" stroke="#fff" stroke-width="66" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="310,565 215,645 318,750"/>
+    <polyline points="700,565 785,645 683,750"/>
+    <line x1="500" y1="650" x2="432" y2="787"/>
+  </g>
+  <g font-family="Nunito, 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif" font-weight="900" text-anchor="middle" paint-order="stroke" stroke-linejoin="round">
+    <text x="502" y="545" font-size="168" fill="#fff" stroke="#000" stroke-width="20">Simple</text>
+    <text x="502" y="642" font-size="138" fill="#fff" stroke="#000" stroke-width="34">Code</text>
+    <text x="502" y="642" font-size="138" fill="#000" stroke="#fff" stroke-width="14">Code</text>
+  </g>
+</svg>
+  <div class="brand">
+    <h1>Simple Code <span id="title">· Simply C++</span></h1>
+    <p id="tagline">C++ for dummies — friendlier rules, and the console explains every step.</p>
+  </div>
+  <div class="spacer"></div>
+  <div class="seg" role="tablist" aria-label="Language">
+    <button data-lang="cpp" class="on"><img src="logo-cpp.png" alt="">Simply C++</button>
+    <button data-lang="c"><img src="logo-c.png" alt="">Simple C</button>
+  </div>
+  <span class="chip" id="extChip">files: .scpp</span>
+</header>
+
+<div class="toolbar">
+  <button class="btn run" id="runBtn" title="Run (Ctrl/⌘ + Enter)">▶ Run</button>
+  <label class="toggle" title="Explain mode: the console tells you what each line did">
+    <input type="checkbox" id="explain" checked><span class="sw"></span> Explain mode
+  </label>
+  <select id="examples" aria-label="Examples"></select>
+  <span class="grow"></span>
+  <input class="fname" id="fname" value="main.scpp" aria-label="File name" spellcheck="false">
+  <button class="btn" id="newBtn">New</button>
+  <button class="btn" id="openBtn">Open</button>
+  <button class="btn" id="saveBtn" title="Save (Ctrl/⌘ + S)">Save .scpp</button>
+  <input type="file" id="fileIn" accept=".scpp,.sc,.cpp,.c,.txt,text/plain" hidden>
+</div>
+
+<main>
+  <section class="pane">
+    <div class="pane-head"><span>📝 Editor</span><span class="grow"></span><span class="hint">Ctrl/⌘+Enter to run · drop a .scpp or .sc file here</span></div>
+    <div class="editor" id="editorBox">
+      <div class="gutter"><div class="gutter-inner" id="gutter"></div></div>
+      <div class="code">
+        <div class="errband" id="errband"></div>
+        <pre id="hl" aria-hidden="true"></pre>
+        <textarea id="src" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Simply C++ code"></textarea>
+      </div>
+      <div class="drop">Drop your .scpp or .sc file to open it</div>
+    </div>
+    <div class="status"><span id="pos">Ln 1, Col 1</span><span class="grow"></span><span id="ver">Simply C++ 1.1</span></div>
+  </section>
+
+  <section class="pane">
+    <div class="pane-head">
+      <button class="tab on" data-tab="console">💻 Console</button>
+      <button class="tab" data-tab="sheet">📖 Cheat sheet</button>
+      <span class="grow"></span>
+      <button class="btn small" id="clearBtn">Clear</button>
+    </div>
+    <div class="console" id="console">
+      <div class="empty">Press <b>▶ Run</b> to start your program.<br>With <b>Explain mode</b> on, I'll tell you what every line did — like a tutor sitting next to you.</div>
+    </div>
+    <div class="sheet" id="sheet">
+     <div data-sheet="c" hidden>
+      <h2>Why Simple C?</h2>
+      <p>It's C with the scary parts removed. No <code>#include</code>, no <code>main()</code>, no semicolons required, real text strings you can glue with <b>+</b>, and friendly errors instead of crashes. Real C code (<code>printf</code>, <code>scanf</code>, <code>int main(void)</code>) still works.</p>
+      <h2>Real C vs Simple C</h2>
+      <table>
+        <tr><th>You want to…</th><th>Real C</th><th>Simple C</th></tr>
+        <tr><td>Print a line</td><td class="old"><code>printf("hi\n");</code></td><td class="new"><code>print "hi"</code></td></tr>
+        <tr><td>Glue text</td><td class="old"><code>strcat(buf, "hi");</code> (careful with sizes!)</td><td class="new"><code>"hi" + "hi"</code></td></tr>
+        <tr><td>Text + number</td><td class="old"><code>printf("Age: %d\n", age);</code></td><td class="new"><code>print "Age: " + age</code></td></tr>
+        <tr><td>A text variable</td><td class="old"><code>char name[50] = "Sam";</code></td><td class="new"><code>string name = "Sam"</code></td></tr>
+        <tr><td>Compare text</td><td class="old"><code>strcmp(a, b) == 0</code></td><td class="new"><code>a == b</code></td></tr>
+        <tr><td>Ask the user</td><td class="old"><code>scanf("%d", &amp;age);</code></td><td class="new"><code>scan "Age? " age</code></td></tr>
+        <tr><td>Count 1 to 5</td><td class="old"><code>for (int i = 1; i &lt;= 5; i++)</code></td><td class="new"><code>for i in 1 to 5</code></td></tr>
+        <tr><td>Do it 3 times</td><td class="old"><code>for (int i = 0; i &lt; 3; i++)</code></td><td class="new"><code>repeat 3 { ... }</code></td></tr>
+        <tr><td>An array that grows</td><td class="old"><code>malloc</code> / <code>realloc</code> 😱</td><td class="new"><code>list v = [1, 2]</code>, <code>v.add(3)</code></td></tr>
+        <tr><td>Array size</td><td class="old"><code>sizeof(a) / sizeof(a[0])</code></td><td class="new"><code>a.size()</code></td></tr>
+        <tr><td>Make a function</td><td class="old"><code>int add(int a, int b) {...}</code></td><td class="new"><code>func add(a, b) {...}</code></td></tr>
+        <tr><td>True / false</td><td class="old"><code>#include &lt;stdbool.h&gt;</code></td><td class="new"><code>bool done = true</code></td></tr>
+        <tr><td>Divide</td><td class="old"><code>7 / 2</code> → 3</td><td class="new"><code>7 / 2</code> → 3.5</td></tr>
+        <tr><td>Random number</td><td class="old"><code>rand() % 6 + 1</code></td><td class="new"><code>random(1, 6)</code></td></tr>
+        <tr><td>Out-of-bounds array</td><td class="old">silent garbage / crash</td><td class="new">a clear error that tells you the valid spots</td></tr>
+      </table>
+      <h2>printf placeholders</h2>
+      <div class="pills"><code>%d</code> whole number <code>%f</code> decimal <code>%.2f</code> 2 decimals <code>%s</code> text <code>%c</code> one letter <code>%%</code> a % sign <code>\n</code> new line</div>
+      <h2>Boxes (variables)</h2>
+      <p><code>int</code> whole numbers · <code>double</code>/<code>float</code> decimals · <code>char</code> one letter · <code>string</code> text (new!) · <code>bool</code> true/false · <code>list</code> many things · <code>auto</code> "you figure it out".</p>
+      <h2>Text helpers</h2>
+      <div class="pills"><code>strlen(s)</code><code>strcmp(a, b)</code><code>strcpy(dest, src)</code><code>strcat(dest, src)</code><code>toupper(c)</code><code>tolower(c)</code><code>atoi("5")</code><code>atof("2.5")</code><code>s.upper()</code><code>s.contains("x")</code><code>s.split(",")</code></div>
+      <h2>Math helpers</h2>
+      <div class="pills"><code>random(1, 10)</code><code>sqrt(x)</code><code>pow(x, y)</code><code>abs(x)</code><code>fabs(x)</code><code>round(x)</code><code>floor(x)</code><code>ceil(x)</code><code>min(a, b)</code><code>max(a, b)</code></div>
+      <h2>Real C still works</h2>
+      <p><code>#include &lt;stdio.h&gt;</code>, <code>int main(void)</code>, <code>printf</code>, <code>scanf("%d", &amp;x)</code>, <code>puts</code>, <code>char name[50]</code>, arrays like <code>int a[5] = {1, 2, 3}</code>, classic <code>for (;;)</code> loops — all understood. Explain mode tells you which parts Simple C lets you skip.</p>
+     </div>
+     <div data-sheet="cpp">
+      <h2>Why Simply C++?</h2>
+      <p>It's C++ with the annoying parts removed. No <code>#include</code>, no <code>main()</code>, no semicolons required — and you can glue text together with <b>+</b>. Real C++ code still works too, so you can grow into it.</p>
+      <h2>Real C++ vs Simply C++</h2>
+      <table>
+        <tr><th>You want to…</th><th>Real C++</th><th>Simply C++</th></tr>
+        <tr><td>Print a line</td><td class="old"><code>cout &lt;&lt; "hi" &lt;&lt; endl;</code></td><td class="new"><code>cout "hi"</code></td></tr>
+        <tr><td>Glue text</td><td class="old"><code>string("hi") + "hi"</code></td><td class="new"><code>"hi" + "hi"</code></td></tr>
+        <tr><td>Text + number</td><td class="old"><code>"Age: " + to_string(5)</code></td><td class="new"><code>"Age: " + 5</code></td></tr>
+        <tr><td>Repeat text</td><td class="old"><code>string(3, 'a')</code> (letters only)</td><td class="new"><code>"ha" * 3</code></td></tr>
+        <tr><td>Ask the user</td><td class="old"><code>cout &lt;&lt; "Name? ";
+cin &gt;&gt; name;</code></td><td class="new"><code>cin "Name? " name</code>
+<code>string n = ask("Name?")</code></td></tr>
+        <tr><td>Count 1 to 5</td><td class="old"><code>for (int i = 1; i &lt;= 5; i++)</code></td><td class="new"><code>for i in 1 to 5</code></td></tr>
+        <tr><td>Do it 3 times</td><td class="old"><code>for (int i = 0; i &lt; 3; i++)</code></td><td class="new"><code>repeat 3 { ... }</code></td></tr>
+        <tr><td>Make a list</td><td class="old"><code>vector&lt;int&gt; v = {1, 2};
+v.push_back(3);</code></td><td class="new"><code>list v = [1, 2]
+v.add(3)</code></td></tr>
+        <tr><td>Loop over a list</td><td class="old"><code>for (auto x : v)</code></td><td class="new"><code>for x in v</code></td></tr>
+        <tr><td>Last item</td><td class="old"><code>v[v.size() - 1]</code></td><td class="new"><code>v[-1]</code> or <code>v.last()</code></td></tr>
+        <tr><td>Make a function</td><td class="old"><code>int add(int a, int b) {...}</code></td><td class="new"><code>func add(a, b) {...}</code></td></tr>
+        <tr><td>Logic</td><td class="old"><code>&amp;&amp;  ||  !</code></td><td class="new"><code>and  or  not</code> (symbols work too)</td></tr>
+        <tr><td>Divide</td><td class="old"><code>7 / 2</code> → 3 (surprise!)</td><td class="new"><code>7 / 2</code> → 3.5</td></tr>
+        <tr><td>Random number</td><td class="old"><code>rand() % 6 + 1</code></td><td class="new"><code>random(1, 6)</code></td></tr>
+        <tr><td>If / while</td><td class="old"><code>if (x &gt; 5) { }</code></td><td class="new"><code>if x &gt; 5 { }</code> (parentheses optional)</td></tr>
+        <tr><td>Print true/false</td><td class="old">prints <code>1</code> / <code>0</code></td><td class="new">prints <code>true</code> / <code>false</code></td></tr>
+      </table>
+      <h2>Boxes (variables)</h2>
+      <p><code>int</code> whole numbers · <code>double</code> decimals · <code>string</code> text · <code>bool</code> true/false · <code>char</code> one letter · <code>list</code> many things · <code>auto</code> / <code>var</code> "you figure it out".</p>
+      <h2>Text tricks</h2>
+      <div class="pills"><code>.length()</code><code>.upper()</code><code>.lower()</code><code>.contains("x")</code><code>.startsWith("x")</code><code>.endsWith("x")</code><code>.find("x")</code><code>.replace("a","b")</code><code>.split(",")</code><code>.trim()</code><code>.reverse()</code><code>.substr(0, 3)</code><code>.repeat(2)</code><code>.count("a")</code><code>.capitalize()</code><code>.isNumber()</code><code>.toInt()</code></div>
+      <h2>List tricks</h2>
+      <div class="pills"><code>.add(x)</code><code>.pop()</code><code>.remove(x)</code><code>.removeAt(i)</code><code>.insert(i, x)</code><code>.size()</code><code>.contains(x)</code><code>.indexOf(x)</code><code>.sort()</code><code>.reverse()</code><code>.join(", ")</code><code>.first()</code><code>.last()</code><code>.sum()</code><code>.max()</code><code>.min()</code><code>.average()</code><code>.shuffle()</code><code>.clear()</code></div>
+      <h2>Built-in helpers</h2>
+      <div class="pills"><code>random(1, 10)</code><code>sqrt(x)</code><code>pow(x, y)</code><code>abs(x)</code><code>round(x)</code><code>round(x, 2)</code><code>floor(x)</code><code>ceil(x)</code><code>min(a, b)</code><code>max(a, b)</code><code>toInt("5")</code><code>toDouble("2.5")</code><code>toString(5)</code><code>ask("Question?")</code><code>wait(500)</code><code>range(1, 5)</code><code>typeOf(x)</code><code>exit()</code></div>
+      <h2>Real C++ still works</h2>
+      <p><code>#include</code>, <code>using namespace std;</code>, <code>int main()</code>, <code>cout &lt;&lt;</code>, <code>cin &gt;&gt;</code>, <code>vector&lt;int&gt;</code>, <code>push_back</code>, classic <code>for (;;)</code> loops, <code>std::</code> — all understood. Explain mode tells you which parts Simply C++ lets you skip.</p>
+     </div>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* =====================================================================
+   SIMPLY C++ — lexer, parser and a friendly interpreter
+   ===================================================================== */
+
+class SimplyError extends Error {
+  constructor(line, title, what, fix, col) {
+    super(title); this.line = line; this.title = title; this.what = what; this.fix = fix; this.col = col;
+  }
+}
+
+const TYPE_WORDS = { int:'int', long:'int', short:'int', unsigned:'int', size_t:'int', double:'double', float:'double',
+  string:'string', bool:'bool', char:'char', auto:'auto', var:'auto', let:'auto', list:'list', vector:'list', array:'list', void:'void' };
+const TYPE_DESC = { int:'int (whole numbers)', double:'double (decimal numbers)', string:'string (text)', bool:'bool (true/false)',
+  char:'char (one letter)', list:'list', auto:'auto', void:'void' };
+const RESERVED = new Set(['if','else','while','for','do','repeat','return','break','continue','func','function','fn','cout','cin','print','say','scan','using','in','to','until','step','times']);
+const BUILTIN_NAMES = ['random','sqrt','pow','abs','round','floor','ceil','min','max','toInt','toDouble','toString','stoi','stod','to_string',
+  'length','len','size','typeOf','ask','input','wait','sleep','range','exit','isNumber','getline','int','double','string','number',
+  'printf','scanf','puts','putchar','strlen','strcmp','strcpy','strcat','atoi','atof','toupper','tolower','fabs','rand'];
+
+/* ---------------- Lexer ---------------- */
+const OPS = ['<<=','>>=','==','!=','<=','>=','&&','||','++','--','+=','-=','*=','/=','%=','<<','>>','::','->','..',
+  '+','-','*','/','%','=','<','>','!','(',')','{','}','[',']',',',';','.',':','?','&','|'];
+
+function lex(src) {
+  const toks = []; let i = 0, line = 1, lineStartIdx = 0, atLineStart = true;
+  const stack = [];
+  const push = (t, v, extra) => { const tk = { t, v, line, col: i - lineStartIdx + 1, ...extra }; toks.push(tk); return tk; };
+  while (i < src.length) {
+    const ch = src[i];
+    if (ch === '\n') {
+      const top = stack[stack.length - 1];
+      if (!(top === '(' || top === '[') && toks.length && toks[toks.length - 1].t !== 'nl') push('nl', '\n');
+      i++; line++; lineStartIdx = i; atLineStart = true; continue;
+    }
+    if (ch === ' ' || ch === '\t' || ch === '\r') { i++; continue; }
+    if (ch === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') i++; continue; }
+    if (ch === '/' && src[i + 1] === '*') {
+      const sl = line; i += 2;
+      while (i < src.length && !(src[i] === '*' && src[i + 1] === '/')) { if (src[i] === '\n') { line++; lineStartIdx = i + 1; } i++; }
+      if (i >= src.length) throw new SimplyError(sl, 'A comment never ends', 'You started a comment with <code>/*</code> but never closed it, so I think the whole rest of your file is a comment.', 'Add <code>*/</code> where the comment should stop.');
+      i += 2; continue;
+    }
+    if (ch === '#' && atLineStart) {
+      const s = i; while (i < src.length && src[i] !== '\n') i++;
+      toks.push({ t: 'directive', v: src.slice(s, i).trim(), line, col: s - lineStartIdx + 1 }); continue;
+    }
+    atLineStart = false;
+    if (ch === '"' || ch === "'") {
+      const q = ch; let j = i + 1, s = '';
+      while (j < src.length && src[j] !== q) {
+        if (src[j] === '\n') break;
+        if (src[j] === '\\') { const e = src[j + 1]; s += ({ n: '\n', t: '\t', '\\': '\\', '"': '"', "'": "'", '0': '\0' })[e] ?? e; j += 2; continue; }
+        s += src[j]; j++;
+      }
+      if (j >= src.length || src[j] !== q) {
+        throw new SimplyError(line, 'Missing a closing quote', `You started some text with <code>${q}</code> but the line ended before the closing <code>${q}</code>. Text always needs a quote at the start <i>and</i> at the end.`,
+          `Put a <code>${q}</code> at the end of the text, like: <code>cout ${q}hello${q}</code>`, i - lineStartIdx + 1);
+      }
+      push('str', s, { quote: q }); i = j + 1; continue;
+    }
+    if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[i + 1]))) {
+      const m = /^(\d*\.?\d+(?:[eE][+-]?\d+)?|\d+\.)/.exec(src.slice(i));
+      push('num', parseFloat(m[0])); i += m[0].length;
+      while (/[fFlLuU]/.test(src[i] || '')) i++;
+      continue;
+    }
+    if (/[A-Za-z_]/.test(ch)) {
+      const m = /^[A-Za-z_]\w*/.exec(src.slice(i));
+      if (m[0] === 'std' && src.slice(i + 3, i + 5) === '::') { i += 5; continue; }
+      push('id', m[0]); i += m[0].length; continue;
+    }
+    const op = OPS.find(o => src.startsWith(o, i));
+    if (!op) {
+      throw new SimplyError(line, `I don't know the symbol "${escapeHtml(ch)}"`, `The character <code>${escapeHtml(ch)}</code> doesn't mean anything in Simply C++.`,
+        ch === '“' || ch === '”' ? 'Those are "curly" quotes (from a word processor). Use plain straight quotes <code>"</code> instead.' : 'Delete it, or put it inside quotes if it is part of some text.', i - lineStartIdx + 1);
+    }
+    if (op === '(' || op === '[' || op === '{') stack.push(op);
+    if (op === ')' || op === ']' || op === '}') stack.pop();
+    push('op', op); i += op.length;
+  }
+  toks.push({ t: 'eof', v: '', line, col: i - lineStartIdx + 1 });
+  return toks;
+}
+
+/* ---------------- Parser ---------------- */
+class Parser {
+  constructor(toks, lang) { this.t = toks; this.i = 0; this.lang = lang || 'cpp'; }
+  peek(k = 0) { return this.t[Math.min(this.i + k, this.t.length - 1)]; }
+  next() { const tk = this.t[Math.min(this.i, this.t.length - 1)]; this.i++; return tk; }
+  is(t, v, k = 0) { const x = this.peek(k); return x.t === t && (v === undefined || x.v === v); }
+  isOp(v, k = 0) { return this.is('op', v, k); }
+  isId(v, k = 0) { return this.is('id', v, k); }
+  match(t, v) { return this.is(t, v) ? this.next() : null; }
+  skipNL() { while (this.is('nl')) this.next(); }
+  skipSeps() { while (this.is('nl') || this.isOp(';')) this.next(); }
+  atEnd() { const p = this.peek(); return p.t === 'nl' || p.t === 'eof' || (p.t === 'op' && (p.v === ';' || p.v === '}')); }
+  desc(tk) {
+    if (tk.t === 'eof') return 'the end of the file';
+    if (tk.t === 'nl') return 'the end of the line';
+    if (tk.t === 'str') return `the text <code>"${escapeHtml(tk.v)}"</code>`;
+    if (tk.t === 'num') return `the number <code>${tk.v}</code>`;
+    if (tk.t === 'id') return `the word <code>${escapeHtml(tk.v)}</code>`;
+    return `<code>${escapeHtml(tk.v)}</code>`;
+  }
+  err(tk, title, what, fix) { return new SimplyError(tk.line, title, what, fix, tk.col); }
+  expectOp(v, where, fix) {
+    if (this.isOp(v)) return this.next();
+    const tk = this.peek();
+    throw this.err(tk, `Missing "${v}"`, `I expected a <code>${escapeHtml(v)}</code>${where ? ' ' + where : ''}, but found ${this.desc(tk)}.`,
+      fix || (v === ')' ? 'Every <code>(</code> needs a matching <code>)</code>. Count them!' : v === ']' ? 'Every <code>[</code> needs a matching <code>]</code>.' : `Add a <code>${escapeHtml(v)}</code> there.`));
+  }
+  expectId(what) {
+    const tk = this.peek();
+    if (tk.t === 'id' && !RESERVED.has(tk.v)) return this.next();
+    throw this.err(tk, `Expected a name`, `I expected ${what}, but found ${this.desc(tk)}.`, 'Names can use letters, numbers and _ (but can\'t start with a number), like <code>score</code> or <code>player_name</code>.');
+  }
+
+  parseProgram() {
+    const body = []; this.skipSeps();
+    while (!this.is('eof')) { body.push(this.parseStatement()); this.skipSeps(); }
+    return body;
+  }
+  parseBlock() {
+    const open = this.expectOp('{');
+    const body = []; this.skipSeps();
+    while (!this.isOp('}')) {
+      if (this.is('eof')) throw new SimplyError(open.line, 'A { is never closed', `The <code>{</code> on line ${open.line} opens a block of code, but there's no <code>}</code> to close it.`, 'Add a <code>}</code> after the last line that belongs inside the block.', open.col);
+      body.push(this.parseStatement()); this.skipSeps();
+    }
+    this.next();
+    return body;
+  }
+  parseBody() {
+    this.skipNL();
+    if (this.isOp('{')) return this.parseBlock();
+    if (this.is('eof')) throw this.err(this.peek(), 'Missing the body', 'This needs some code to run (usually inside <code>{ }</code>), but the file ended.', 'Add <code>{</code> your code <code>}</code>.');
+    return [this.parseStatement()];
+  }
+  endStatement() {
+    if (this.match('op', ';')) return;
+    if (this.is('nl')) { this.next(); return; }
+    if (this.is('eof') || this.isOp('}')) return;
+    const tk = this.peek();
+    let fix = 'Put each instruction on its own line (or separate them with <code>;</code>).';
+    if (tk.t === 'str' || tk.t === 'num' || tk.t === 'id') fix = 'If you wanted to join things together, put a <code>+</code> between them, like <code>"Hi " + name</code>.';
+    if (tk.t === 'op' && tk.v === '<') fix = 'cout uses two arrows: <code>&lt;&lt;</code>';
+    throw this.err(tk, 'Something extra on this line', `I thought this instruction was finished, but then I found ${this.desc(tk)}.`, fix);
+  }
+
+  looksLikeType(k0 = 0) {
+    let k = k0;
+    while (this.isId('const', k) || this.isId('static', k)) k++;
+    const w = this.peek(k);
+    if (w.t !== 'id' || !(w.v in TYPE_WORDS)) return false;
+    k++;
+    while (this.peek(k).t === 'id' && this.peek(k).v in TYPE_WORDS && (this.peek(k + 1).t === 'id' || this.isOp('&', k + 1))) k++;
+    if (this.isOp('<', k)) return true;
+    while (this.isOp('&', k) || this.isOp('*', k)) k++;
+    return this.peek(k).t === 'id' && !RESERVED.has(this.peek(k).v) && !['and','or','not'].includes(this.peek(k).v);
+  }
+  parseType() {
+    let isConst = false;
+    while (this.isId('const') || this.isId('static')) { if (this.next().v === 'const') isConst = true; }
+    let words = [this.next().v];
+    while (this.peek().t === 'id' && this.peek().v in TYPE_WORDS && (this.peek(1).t === 'id' || this.isOp('&', 1))) words.push(this.next().v);
+    let t = TYPE_WORDS[words.find(w => !['unsigned','long','short'].includes(w)) || words[0]];
+    if (this.isOp('<')) { // vector<int>
+      let depth = 0;
+      do {
+        const tk = this.next();
+        if (tk.t === 'op' && tk.v === '<') depth++;
+        else if (tk.t === 'op' && tk.v === '>') depth--;
+        else if (tk.t === 'op' && tk.v === '>>') depth -= 2;
+        else if (tk.t === 'eof' || tk.t === 'nl') throw this.err(tk, 'Unfinished type', 'A type like <code>vector&lt;int&gt;</code> needs its closing <code>&gt;</code>.', 'Add <code>&gt;</code>.');
+      } while (depth > 0);
+    }
+    let ref = false;
+    while (this.isOp('&') || this.isOp('*')) { this.next(); ref = true; }
+    return { t, isConst, ref };
+  }
+
+  parseStatement() {
+    const tk = this.peek();
+    if (tk.t === 'directive') { this.next(); return { type: 'Directive', text: tk.v, line: tk.line }; }
+    if (tk.t === 'op' && tk.v === '{') return { type: 'Block', body: this.parseBlock(), line: tk.line };
+    if (tk.t === 'op' && tk.v === '}') throw this.err(tk, 'An extra }', 'This <code>}</code> doesn\'t close anything — there\'s no matching <code>{</code> before it.', 'Delete this <code>}</code>, or check that every <code>{</code> and <code>}</code> pair up.');
+    if (tk.t === 'id') {
+      switch (tk.v) {
+        case 'using': this.next(); while (!this.atEnd()) this.next(); this.endStatement(); return { type: 'Using', line: tk.line };
+        case 'if': return this.parseIf();
+        case 'while': { this.next(); const cond = this.parseCond('while'); return { type: 'While', cond, body: this.parseBody(), line: tk.line }; }
+        case 'do': {
+          this.next(); const body = this.parseBody(); this.skipSeps();
+          if (!this.isId('while')) throw this.err(this.peek(), 'do needs a while', 'A <code>do { }</code> loop must end with <code>while (condition)</code>.', 'Add <code>while (something)</code> after the <code>}</code>.');
+          this.next(); const cond = this.parseCond('while'); this.endStatement();
+          return { type: 'DoWhile', cond, body, line: tk.line };
+        }
+        case 'for': return this.parseFor();
+        case 'repeat': {
+          this.next();
+          if (this.isOp('{')) throw this.err(this.peek(), 'repeat needs a number', '<code>repeat</code> needs to know how many times.', 'Write it like <code>repeat 3 { ... }</code>.');
+          const count = this.parseExpr(); this.match('id', 'times');
+          return { type: 'Repeat', count, body: this.parseBody(), line: tk.line };
+        }
+        case 'else': throw this.err(tk, '"else" without an "if"', '<code>else</code> has to come right after the <code>}</code> of an <code>if</code>.', 'Make sure there is an <code>if (...) { }</code> directly above this else.');
+        case 'func': case 'function': case 'fn': this.next(); return this.parseFuncRest({ t: 'auto' }, tk);
+      }
+      if (this.looksLikeType()) {
+        const save = this.i;
+        const ty = this.parseType();
+        if (this.peek().t === 'id' && this.isOp('(', 1)) return this.parseFuncRest(ty, tk);
+        this.i = save;
+      }
+    }
+    const node = this.parseSimple();
+    this.endStatement();
+    return node;
+  }
+
+  parseFuncRest(ty, startTk) {
+    const name = this.expectId('a name for the function').v;
+    this.expectOp('(', 'after the function name');
+    const params = [];
+    if (this.isId('void') && this.isOp(')', 1)) this.next(); // C: int main(void)
+    this.skipNL();
+    while (!this.isOp(')')) {
+      let pty = { t: 'auto' };
+      if (this.isId('const') || (this.peek().t === 'id' && this.peek().v in TYPE_WORDS && (this.peek(1).t === 'id' || this.isOp('&', 1) || this.isOp('*', 1) || this.isOp('<', 1) || this.peek(1).v in TYPE_WORDS)))
+        pty = this.parseType();
+      while (this.isOp('&')) { this.next(); pty.ref = true; }
+      const pname = this.expectId('a name for this input (parameter)').v;
+      let isList = false;
+      if (this.match('op', '[')) { this.expectOp(']'); isList = true; pty = { ...pty, t: 'list', ref: true }; }
+      let def = null;
+      if (this.match('op', '=')) def = this.parseExpr();
+      params.push({ name: pname, type: pty.t, ref: !!pty.ref || isList, def });
+      this.skipNL();
+      if (!this.match('op', ',')) break;
+      this.skipNL();
+    }
+    this.expectOp(')', 'to finish the list of inputs');
+    this.skipNL();
+    if (this.isOp(';')) throw this.err(this.peek(), 'No prototypes needed', 'In Simply C++ you don\'t have to declare a function before writing it — just write the full function (with its <code>{ }</code> body) anywhere in the file.', 'Delete this line, or add the body: <code>{ ... }</code>');
+    if (!this.isOp('{')) throw this.err(this.peek(), 'Function needs a body', `The function <code>${name}</code> needs its code inside <code>{ }</code>.`, `Write it like: <code>func ${name}() { cout "hi" }</code>`);
+    const body = this.parseBlock();
+    return { type: 'Func', name, params, retType: ty.t, body, line: startTk.line };
+  }
+
+  parseCond(word) {
+    if (this.isOp('{') || this.atEnd()) throw this.err(this.peek(), `${word} needs a condition`, `<code>${word}</code> needs a question to check, like <code>${word} x &gt; 5</code>.`, `Add a condition after <code>${word}</code>.`);
+    const e = this.parseExpr();
+    if (e.type === 'Assign' && e.op === '=') throw new SimplyError(e.line, 'Use == to compare', `Inside an <code>${word}</code>, a single <code>=</code> means "put a value in a box" — not "is equal to". (Real C++ allows this and it causes sneaky bugs!)`,
+      `Use two equals signs to compare: <code>${escapeHtml(src(e.target))} == ${escapeHtml(src(e.value))}</code>`);
+    return e;
+  }
+  parseIf() {
+    const tk = this.next();
+    const cond = this.parseCond('if');
+    const body = this.parseBody();
+    let elseBody = null;
+    const save = this.i;
+    while (this.is('nl') || this.isOp(';')) this.next();
+    if (this.isId('else')) {
+      this.next();
+      if (this.isId('if')) elseBody = [this.parseIf()];
+      else elseBody = this.parseBody();
+    } else this.i = save;
+    return { type: 'If', cond, body, elseBody, line: tk.line };
+  }
+  parseFor() {
+    const tk = this.next();
+    const paren = !!this.match('op', '(');
+    let k = 0;
+    if (this.peek().t === 'id' && this.peek().v in TYPE_WORDS && (this.peek(1).t === 'id' || this.isOp('&', 1))) { k = 1; while (this.isOp('&', k)) k++; }
+    if (this.peek(k).t === 'id' && (this.isId('in', k + 1) || this.isOp(':', k + 1))) {
+      this.i += k;
+      const name = this.next().v; this.next();
+      const start = this.parseExpr();
+      if (this.isId('to') || this.isId('until')) {
+        const kind = this.next().v;
+        const end = this.parseExpr();
+        let step = null;
+        if (this.match('id', 'step')) step = this.parseExpr();
+        if (paren) this.expectOp(')', 'to close the for loop');
+        return { type: 'ForRange', name, start, end, step, exclusive: kind === 'until', body: this.parseBody(), line: tk.line };
+      }
+      if (paren) this.expectOp(')', 'to close the for loop');
+      return { type: 'ForEach', name, iter: start, body: this.parseBody(), line: tk.line };
+    }
+    if (!paren) throw this.err(this.peek(), 'I don\'t understand this for loop', 'A Simply C++ for loop looks like <code>for i in 1 to 10</code> or <code>for x in myList</code>. The classic C++ style needs parentheses.',
+      'Try <code>for i in 1 to 5 { ... }</code> or <code>for (int i = 0; i &lt; 5; i++) { ... }</code>');
+    let init = null, cond = null, update = null;
+    if (!this.isOp(';')) init = this.parseSimple();
+    this.expectOp(';', 'after the starting part of the for loop', 'A classic for loop has 3 parts split by semicolons: <code>for (int i = 0; i &lt; 5; i++)</code>');
+    if (!this.isOp(';')) cond = this.parseExpr();
+    this.expectOp(';', 'after the condition of the for loop', 'A classic for loop has 3 parts split by semicolons: <code>for (int i = 0; i &lt; 5; i++)</code>');
+    if (!this.isOp(')')) update = this.parseExpr();
+    this.expectOp(')', 'to close the for loop');
+    return { type: 'For', init, cond, update, body: this.parseBody(), line: tk.line };
+  }
+
+  parseSimple() {
+    const tk = this.peek();
+    if (tk.t === 'id') {
+      switch (tk.v) {
+        case 'cout': case 'cin':
+          if (this.lang === 'c') throw this.err(tk, `${tk.v === 'cout' ? 'c<!-- -->out' : 'c<!-- -->in'} is from C+<!-- -->+, not C`, `<code>${tk.v === 'cout' ? 'c<!-- -->out' : 'c<!-- -->in'}</code> only exists in C+<!-- -->+. You're writing <b>Simple C</b> right now.`,
+            tk.v === 'cout' ? 'Use <code>print "hi"</code> (or real C: <code>printf("hi\\n");</code>). Or switch to Simply C+<!-- -->+ at the top.' : 'Use <code>scan age</code> (or real C: <code>scanf("%d", &amp;age);</code>). Or switch to Simply C+<!-- -->+ at the top.');
+          return tk.v === 'cout' ? this.parseCout() : this.parseCin();
+        case 'print': case 'say': return this.parseCout();
+        case 'scan': return this.parseCin();
+        case 'cin': return this.parseCin();
+        case 'return': { this.next(); const value = this.atEnd() ? null : this.parseExpr(); return { type: 'Return', value, line: tk.line }; }
+        case 'break': this.next(); return { type: 'Break', line: tk.line };
+        case 'continue': this.next(); return { type: 'Continue', line: tk.line };
+      }
+      if (this.looksLikeType()) { const ty = this.parseType(); return this.parseDecl(ty, tk); }
+    }
+    const expr = this.parseExpr();
+    return { type: 'Expr', expr, line: tk.line };
+  }
+  parseDecl(ty, tk) {
+    if (ty.t === 'void') throw this.err(tk, 'void boxes can\'t hold anything', '<code>void</code> means "nothing" — it\'s only used for functions that don\'t give back an answer.', 'Pick a real type like <code>int</code>, <code>string</code>, or <code>auto</code>.');
+    const items = [];
+    do {
+      const nameTk = this.expectId('a name for the variable');
+      let init = null, size = null;
+      if (this.match('op', '[')) { if (!this.isOp(']')) size = this.parseExpr(); this.expectOp(']'); }
+      if (this.match('op', '=')) { this.skipNL(); init = this.parseExpr(); }
+      else if (this.isOp('{')) init = this.parsePrimary();
+      else if (this.isOp('(')) { this.next(); const args = this.parseArgs(')'); init = args[0] || null; }
+      items.push({ name: nameTk.v, init, size, line: nameTk.line });
+    } while (this.match('op', ','));
+    return { type: 'Decl', varType: ty.t, isConst: ty.isConst, items, line: tk.line };
+  }
+  parseCout() {
+    const tk = this.next();
+    if (tk.v === 'cout' && this.isOp('>>')) throw this.err(this.peek(), 'cout uses << (not >>)', '<code>cout</code> sends things OUT to the screen, so the arrows point toward cout: <code>cout &lt;&lt; "hi"</code>. (<code>&gt;&gt;</code> is for <code>cin</code>.)', 'In Simply C++ you can also skip the arrows: <code>cout "hi"</code>');
+    if (tk.v === 'cout' && this.isOp('<<')) {
+      const parts = [];
+      while (this.match('op', '<<')) {
+        this.skipNL();
+        if (this.atEnd()) throw this.err(this.peek(), 'Nothing after <<', 'There\'s a <code>&lt;&lt;</code> with nothing after it to print.', 'Add something to print after <code>&lt;&lt;</code>, or remove the extra arrows.');
+        parts.push(this.parseExpr());
+      }
+      return { type: 'Print', mode: 'stream', parts, line: tk.line };
+    }
+    const parts = [];
+    if ((tk.v === 'print' || tk.v === 'say') && this.isOp('(')) { this.next(); parts.push(...this.parseArgs(')')); }
+    else if (!this.atEnd()) { parts.push(this.parseExpr()); while (this.match('op', ',')) parts.push(this.parseExpr()); }
+    return { type: 'Print', mode: 'line', parts, line: tk.line };
+  }
+  parseCin() {
+    const tk = this.next(); const targets = []; let prompt = null;
+    if (tk.v === 'cin' && this.isOp('<<')) throw this.err(this.peek(), 'cin uses >> (not <<)', '<code>cin</code> brings things IN from the keyboard, so the arrows point away from cin into your variable: <code>cin &gt;&gt; name</code>.', 'Or skip the arrows: <code>cin name</code>');
+    if (this.isOp('>>')) { while (this.match('op', '>>')) targets.push(this.parsePostfix()); }
+    else {
+      if (this.atEnd()) throw this.err(this.peek(), 'cin needs a box to fill', '<code>cin</code> needs to know which variable to put the typed answer in.', 'Write it like <code>cin name</code> or <code>cin "What\'s your name? " name</code>');
+      if (this.is('str')) prompt = { type: 'Str', value: this.next().v, line: tk.line };
+      targets.push(this.parsePostfix());
+      while (this.match('op', ',')) targets.push(this.parsePostfix());
+    }
+    for (const t of targets) if (t.type !== 'Ident' && t.type !== 'Index')
+      throw new SimplyError(tk.line, 'cin needs a variable', `<code>cin</code> can only put what you type into a variable, not into ${escapeHtml(src(t))}.`, 'Write it like <code>cin age</code>.');
+    return { type: 'Input', targets, prompt, line: tk.line };
+  }
+
+  /* expressions */
+  parseExpr() { return this.parseAssign(); }
+  parseAssign() {
+    const left = this.parseTernary();
+    const tk = this.peek();
+    if (tk.t === 'op' && ['=','+=','-=','*=','/=','%='].includes(tk.v)) {
+      this.next(); this.skipNL();
+      if (left.type !== 'Ident' && left.type !== 'Index') throw this.err(tk, 'Can\'t put a value there', `The left side of <code>${tk.v}</code> must be a variable (a box), but it's <code>${escapeHtml(src(left))}</code>.`, 'Write it like <code>score = 10</code>. To compare instead, use <code>==</code>.');
+      const value = this.parseAssign();
+      return { type: 'Assign', op: tk.v, target: left, value, line: tk.line };
+    }
+    return left;
+  }
+  parseTernary() {
+    const c = this.parseOr();
+    if (this.isOp('?')) {
+      const tk = this.next(); this.skipNL();
+      const a = this.parseAssign(); this.skipNL(); this.expectOp(':', 'in the "? :" shortcut'); this.skipNL();
+      const b = this.parseAssign();
+      return { type: 'Ternary', c, a, b, line: tk.line };
+    }
+    return c;
+  }
+  bin(nextFn, ops) {
+    let left = nextFn();
+    for (;;) {
+      const tk = this.peek();
+      if (!((tk.t === 'op' || tk.t === 'id') && ops.includes(tk.v))) break;
+      this.next(); this.skipNL();
+      const right = nextFn();
+      const op = tk.v === 'and' ? '&&' : tk.v === 'or' ? '||' : tk.v;
+      left = { type: 'Bin', op, word: tk.t === 'id' ? tk.v : null, left, right, line: tk.line };
+    }
+    return left;
+  }
+  parseOr() { return this.bin(() => this.parseAnd(), ['||', 'or']); }
+  parseAnd() { return this.bin(() => this.parseEq(), ['&&', 'and']); }
+  parseEq() { return this.bin(() => this.parseCmp(), ['==', '!=']); }
+  parseCmp() { return this.bin(() => this.parseAdd(), ['<', '>', '<=', '>=']); }
+  parseAdd() { return this.bin(() => this.parseMul(), ['+', '-']); }
+  parseMul() { return this.bin(() => this.parseUnary(), ['*', '/', '%']); }
+  parseUnary() {
+    const tk = this.peek();
+    if ((tk.t === 'op' && ['!', '-', '+'].includes(tk.v)) || (tk.t === 'id' && tk.v === 'not')) {
+      this.next(); const arg = this.parseUnary();
+      return { type: 'Unary', op: tk.v === 'not' ? '!' : tk.v, word: tk.v === 'not', arg, line: tk.line };
+    }
+    if (tk.t === 'op' && tk.v === '&') {
+      this.next(); const target = this.parseUnary();
+      return { type: 'AddrOf', target, line: tk.line };
+    }
+    if (tk.t === 'op' && (tk.v === '++' || tk.v === '--')) {
+      this.next(); const target = this.parseUnary();
+      this.checkTarget(target, tk);
+      return { type: 'Inc', op: tk.v, prefix: true, target, line: tk.line };
+    }
+    return this.parsePostfix();
+  }
+  checkTarget(t, tk) {
+    if (t.type !== 'Ident' && t.type !== 'Index') throw this.err(tk, `Can't use ${tk.v} here`, `<code>${tk.v}</code> changes a variable, but <code>${escapeHtml(src(t))}</code> isn't a variable.`, `Use it on a variable, like <code>score${tk.v}</code>.`);
+  }
+  parsePostfix() {
+    let e = this.parsePrimary();
+    for (;;) {
+      const tk = this.peek();
+      if (tk.t !== 'op') break;
+      if (tk.v === '(') {
+        if (e.type !== 'Ident') throw this.err(tk, 'Can\'t call that', `<code>${escapeHtml(src(e))}</code> isn't a function, so you can't put <code>( )</code> after it.`, 'Only function names can be called, like <code>sqrt(9)</code>.');
+        this.next(); e = { type: 'Call', name: e.name, args: this.parseArgs(')'), line: tk.line };
+      } else if (tk.v === '[') {
+        this.next(); this.skipNL(); const idx = this.parseExpr(); this.skipNL(); this.expectOp(']');
+        e = { type: 'Index', obj: e, idx, line: tk.line };
+      } else if (tk.v === '.' || tk.v === '->') {
+        this.next();
+        const m = this.peek();
+        if (m.t !== 'id') throw this.err(m, 'Expected a method name', 'After a dot <code>.</code> I expected a method name, like <code>.length()</code>.', 'Write something like <code>name.upper()</code>.');
+        this.next();
+        let args = null;
+        if (this.isOp('(')) { this.next(); args = this.parseArgs(')'); }
+        e = { type: 'Method', obj: e, name: m.v, args, line: tk.line };
+      } else if (tk.v === '++' || tk.v === '--') {
+        this.checkTarget(e, tk); this.next();
+        e = { type: 'Inc', op: tk.v, prefix: false, target: e, line: tk.line };
+      } else break;
+    }
+    return e;
+  }
+  parseArgs(close) {
+    const args = []; this.skipNL();
+    if (this.isOp(close)) { this.next(); return args; }
+    for (;;) {
+      this.skipNL(); args.push(this.parseExpr()); this.skipNL();
+      if (this.match('op', ',')) continue;
+      this.expectOp(close, close === ')' ? 'to finish the list of inputs' : 'to finish the list');
+      break;
+    }
+    return args;
+  }
+  parsePrimary() {
+    const tk = this.peek();
+    if (tk.t === 'num') { this.next(); return { type: 'Num', value: tk.v, line: tk.line }; }
+    if (tk.t === 'str') { this.next(); return { type: 'Str', value: tk.v, quote: tk.quote, line: tk.line }; }
+    if (tk.t === 'id') {
+      if (tk.v === 'true' || tk.v === 'false') { this.next(); return { type: 'Bool', value: tk.v === 'true', line: tk.line }; }
+      if (tk.v === 'endl') { this.next(); return { type: 'Str', value: '\n', endl: true, line: tk.line }; }
+      if (tk.v === 'cout' || tk.v === 'cin' || tk.v === 'print' || tk.v === 'scan')
+        throw this.err(tk, `${tk.v} must start the line`, `<code>${tk.v}</code> is an instruction, so it goes at the start of its own line — it can't be used in the middle of a calculation.`, `Put it on its own line, like <code>${tk.v === 'cin' ? 'cin x' : 'cout "hi"'}</code>.`);
+      if (RESERVED.has(tk.v)) throw this.err(tk, `"${tk.v}" can't go here`, `<code>${tk.v}</code> is a special word in Simply C++ and can't be used in the middle of a calculation.`, `If <code>${tk.v}</code> is supposed to be text, put it in quotes: <code>"${tk.v}"</code>.`);
+      this.next(); return { type: 'Ident', name: tk.v, line: tk.line };
+    }
+    if (tk.t === 'op' && tk.v === '(') {
+      this.next(); this.skipNL(); const e = this.parseExpr(); this.skipNL(); this.expectOp(')');
+      return { ...e, paren: true };
+    }
+    if (tk.t === 'op' && (tk.v === '[' || tk.v === '{')) {
+      this.next(); return { type: 'List', items: this.parseArgs(tk.v === '[' ? ']' : '}'), line: tk.line };
+    }
+    if (tk.t === 'nl' || tk.t === 'eof' || (tk.t === 'op' && (tk.v === ';' || tk.v === '}' || tk.v === ')')))
+      throw this.err(tk, 'Something is missing', `This line stops too early — I expected a value (a number, some <code>"text"</code>, or a variable) but found ${this.desc(tk)}.`, 'Finish the line. If you have a <code>+</code> or <code>=</code> at the end, add what comes after it.');
+    throw this.err(tk, `Didn't expect ${tk.t === 'op' ? '"' + tk.v + '"' : 'that'} here`, `I expected a value (a number, some <code>"text"</code>, or a variable) but found ${this.desc(tk)}.`, tk.v === '<<' ? 'Did you forget <code>cout</code> at the start?' : 'Check this spot for a typo or a missing value.');
+  }
+}
+
+/* ---------------- Helpers ---------------- */
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
+function kind(v) {
+  if (typeof v === 'number') return 'number';
+  if (typeof v === 'string') return 'text';
+  if (typeof v === 'boolean') return 'bool';
+  if (Array.isArray(v)) return 'list';
+  return 'nothing';
+}
+const KIND_WORD = { number: 'a number', text: 'text', bool: 'true/false', list: 'a list', nothing: 'nothing' };
+function fmtNum(n) {
+  if (!isFinite(n)) return n > 0 ? 'infinity' : n < 0 ? '-infinity' : 'not-a-number';
+  if (Number.isInteger(n)) return String(n);
+  return String(parseFloat(n.toPrecision(12)));
+}
+function fmt(v, inList) {
+  switch (kind(v)) {
+    case 'number': return fmtNum(v);
+    case 'text': return inList ? JSON.stringify(v) : v;
+    case 'bool': return v ? 'true' : 'false';
+    case 'list': return '[' + v.map(x => fmt(x, true)).join(', ') + ']';
+    default: return 'nothing';
+  }
+}
+function show(v) { // for explanations
+  let s = kind(v) === 'text' ? '"' + v.replace(/\n/g, '\\n').replace(/\t/g, '\\t') + '"' : fmt(v);
+  if (s.length > 70) s = s.slice(0, 67) + '…' + (kind(v) === 'text' ? '"' : kind(v) === 'list' ? ']' : '');
+  return s;
+}
+function deepCopy(v) { return Array.isArray(v) ? v.map(deepCopy) : v; }
+function src(n) {
+  if (!n) return '';
+  let s;
+  switch (n.type) {
+    case 'Num': s = fmtNum(n.value); break;
+    case 'Str': s = n.endl ? 'endl' : (n.quote === "'" ? "'" + n.value.replace(/\n/g, '\\n') + "'" : JSON.stringify(n.value)); break;
+    case 'Bool': s = String(n.value); break;
+    case 'Ident': s = n.name; break;
+    case 'Bin': s = `${src(n.left)} ${n.word || n.op} ${src(n.right)}`; break;
+    case 'Unary': s = n.word ? 'not ' + src(n.arg) : n.op + src(n.arg); break;
+    case 'Call': s = `${n.name}(${n.args.map(src).join(', ')})`; break;
+    case 'Index': s = `${src(n.obj)}[${src(n.idx)}]`; break;
+    case 'Method': s = `${src(n.obj)}.${n.name}${n.args ? '(' + n.args.map(src).join(', ') + ')' : ''}`; break;
+    case 'Assign': s = `${src(n.target)} ${n.op} ${src(n.value)}`; break;
+    case 'Inc': s = n.prefix ? n.op + src(n.target) : src(n.target) + n.op; break;
+    case 'List': s = `[${n.items.map(src).join(', ')}]`; break;
+    case 'Ternary': s = `${src(n.c)} ? ${src(n.a)} : ${src(n.b)}`; break;
+    case 'Expr': s = src(n.expr); break;
+    case 'AddrOf': s = '&' + src(n.target); break;
+    case 'Decl': s = n.varType + ' ' + n.items.map(it => it.name + (it.init ? ' = ' + src(it.init) : '')).join(', '); break;
+    default: s = '…';
+  }
+  return n.paren ? '(' + s + ')' : s;
+}
+function identsIn(n, out = new Set()) {
+  if (!n || typeof n !== 'object') return out;
+  if (n.type === 'Ident') out.add(n.name);
+  for (const k of ['left', 'right', 'arg', 'obj', 'idx', 'c', 'a', 'b', 'target', 'value']) if (n[k]) identsIn(n[k], out);
+  if (n.args) n.args.forEach(a => identsIn(a, out));
+  if (n.items) n.items.forEach(a => identsIn(a, out));
+  return out;
+}
+function lev(a, b) {
+  const m = a.length, n = b.length; const d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1));
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1); // swapped letters
+  }
+  return d[m][n];
+}
+function closest(name, list) {
+  let best = null, bd = Infinity;
+  for (const c of new Set(list)) { if (c === name) continue; const d = lev(name, c); if (d < bd) { bd = d; best = c; } }
+  return bd <= (name.length <= 3 ? 1 : name.length <= 7 ? 2 : 3) ? best : null;
+}
+const c = s => `<code>${escapeHtml(s)}</code>`;
+
+class Scope {
+  constructor(parent) { this.vars = new Map(); this.parent = parent; }
+  find(n) { for (let s = this; s; s = s.parent) if (s.vars.has(n)) return s.vars.get(n); return null; }
+  names() { const out = []; for (let s = this; s; s = s.parent) out.push(...s.vars.keys()); return out; }
+}
+class BreakSig {} class ContinueSig {} class ExitSig {}
+class ReturnSig { constructor(v) { this.value = v; } }
+
+const MAX_STEPS = 5000000;
+
+/* ---------------- Interpreter ---------------- */
+class Interp {
+  constructor(ast, io) {
+    this.ast = ast; this.io = io; this.global = new Scope(null); this.funcs = new Map();
+    this.steps = 0; this.depth = 0; this.exCounts = new Map(); this.exTotal = 0; this.inPrint = 0;
+  }
+  ex(key, line, fn) {
+    if (!this.io.explainOn) return;
+    const n = this.exCounts.get(key) || 0; this.exCounts.set(key, n + 1);
+    if (this.exTotal > 600) return;
+    if (n < 2) { this.exTotal++; this.io.explain(line, fn()); }
+    else if (n === 2) { this.exTotal++; this.io.explain(line, `…line ${line} keeps repeating, so I'll stay quiet about it from now on.`, true); }
+  }
+  error(line, title, what, fix) { return new SimplyError(line, title, what, fix); }
+
+  *run() {
+    for (const s of this.ast) if (s.type === 'Func') this.defineFunc(s, true);
+    let ended = false;
+    try { yield* this.execList(this.ast, this.global); }
+    catch (e) {
+      if (e instanceof ReturnSig) { ended = true; this.ex('ret-top', null, () => `🏁 <code>return</code> at the top level ends the program.`); }
+      else if (e instanceof ExitSig) return;
+      else if (e instanceof BreakSig || e instanceof ContinueSig) throw this.error(this.sigLine, `"${e instanceof BreakSig ? 'break' : 'continue'}" outside a loop`, `<code>${e instanceof BreakSig ? 'break' : 'continue'}</code> only makes sense inside a loop (<code>while</code>, <code>for</code>, <code>repeat</code>).`, 'Move it inside a loop, or delete it.');
+      else throw e;
+    }
+    const main = this.funcs.get('main');
+    if (!ended && main && !this.mainCalled) {
+      this.ex('main', main.line, () => `🚪 Running <code>main()</code> now. In real C++ every program must start in main — in Simply C++ it's optional, you can write code at the top level.`);
+      try { yield* this.callUser(main, [], main); } catch (e) { if (!(e instanceof ExitSig)) throw e; }
+    }
+  }
+  defineFunc(node, hoisted) {
+    if (BUILTIN_NAMES.includes(node.name) && !['size','length','len'].includes(node.name)) { /* allow overriding, user wins */ }
+    if (this.funcs.has(node.name) && this.funcs.get(node.name) !== node && hoisted)
+      throw this.error(node.line, `Two functions called "${node.name}"`, `You already made a function called ${c(node.name)} on line ${this.funcs.get(node.name).line}.`, 'Give one of them a different name.');
+    this.funcs.set(node.name, node);
+  }
+  *execList(list, scope) { for (const s of list) yield* this.exec(s, scope); }
+  *loopBody(body, scope, node) {
+    yield* this.step(node || body[0] || { line: null });
+    yield* this.execList(body, new Scope(scope));
+  }
+  *step(node) {
+    if (++this.steps > MAX_STEPS) throw this.error(node.line, 'Your program ran too long', `It took more than ${MAX_STEPS.toLocaleString()} steps, so I stopped it. That usually means a loop that never ends (an "infinite loop").`, 'Check that your loop\'s condition becomes false at some point. Did you forget to change the counter (like <code>i++</code>)?');
+    if (this.steps % 4000 === 0) yield { tick: true };
+  }
+
+  *exec(node, scope) {
+    if (++this.steps > MAX_STEPS) throw this.error(node.line, 'Your program ran too long', `It took more than ${MAX_STEPS.toLocaleString()} steps, so I stopped it. That usually means a loop that never ends (an "infinite loop").`, 'Check that your loop\'s condition becomes false at some point. Did you forget to change the counter (like <code>i++</code>)?');
+    if (this.steps % 4000 === 0) yield { tick: true };
+    switch (node.type) {
+      case 'Directive':
+        this.ex(node, node.line, () => `ℹ️ ${c(node.text)} — you don't need <code>#include</code> in Simply C++. cout, cin, strings, lists and math are all built in, so I skipped this line.`);
+        return;
+      case 'Using':
+        this.ex(node, node.line, () => `ℹ️ <code>using namespace std</code> isn't needed — Simply C++ always understands cout, string, etc. Skipped.`);
+        return;
+      case 'Func':
+        if (scope !== this.global) this.defineFunc(node, false);
+        if (node.name === 'main') return;
+        this.ex(node, node.line, () => `🧩 Made a function called ${c(node.name + '(' + node.params.map(p => p.name).join(', ') + ')')}. It won't do anything until you call it.`);
+        return;
+      case 'Block': yield* this.execList(node.body, new Scope(scope)); return;
+      case 'Decl': return yield* this.execDecl(node, scope);
+      case 'Print': return yield* this.execPrint(node, scope);
+      case 'Input':
+        for (const t of node.targets) yield* this.readInto(t, node.prompt ? fmt(yield* this.eval(node.prompt, scope)) : null, scope, node);
+        return;
+      case 'If': {
+        const cv = yield* this.eval(node.cond, scope);
+        const b = this.truthy(cv, node.cond);
+        this.ex(node, node.line, () => `🤔 Checked ${c(src(node.cond))}${this.whereVars(node.cond, scope)} → <b>${b}</b>. ${b ? 'So I ran the "if" part.' : node.elseBody ? 'So I skipped to the "else" part.' : 'So I skipped that block.'}`);
+        if (b) yield* this.loopBody(node.body, scope, node);
+        else if (node.elseBody) yield* this.loopBody(node.elseBody, scope);
+        return;
+      }
+      case 'While': case 'DoWhile': {
+        let first = node.type === 'DoWhile', rounds = 0;
+        for (;;) {
+          if (!first) {
+            const b = this.truthy(yield* this.eval(node.cond, scope), node.cond);
+            if (!b) { this.ex(node.cond, node.line, () => `🏁 ${c(src(node.cond))}${this.whereVars(node.cond, scope)} is now <b>false</b> → the loop is done (it ran ${rounds} time${rounds === 1 ? '' : 's'}).`); break; }
+            this.ex(node, node.line, () => `🔁 ${c(src(node.cond))}${this.whereVars(node.cond, scope)} is <b>true</b> → going around the loop.`);
+          }
+          first = false; rounds++;
+          try { yield* this.loopBody(node.body, scope, node); }
+          catch (e) { if (e instanceof BreakSig) { this.ex('brk' + node.line, node.line, () => `🛑 <code>break</code> → jumped out of the loop.`); break; } if (!(e instanceof ContinueSig)) throw e; }
+        }
+        return;
+      }
+      case 'For': {
+        const fs = new Scope(scope);
+        if (node.init) yield* this.exec(node.init, fs);
+        this.ex(node, node.line, () => `🔁 Classic for loop: start with ${c(src(node.init))}, keep going while ${c(src(node.cond) || 'true')}, and after every round do ${c(src(node.update) || 'nothing')}. (Simply C++ shortcut: <code>for i in 1 to 10</code>)`);
+        let rounds = 0;
+        for (;;) {
+          if (node.cond) {
+            const b = this.truthy(yield* this.eval(node.cond, fs), node.cond);
+            if (!b) { this.ex(node.cond, node.line, () => `🏁 ${c(src(node.cond))}${this.whereVars(node.cond, fs)} is now <b>false</b> → loop done after ${rounds} round${rounds === 1 ? '' : 's'}.`); break; }
+          }
+          rounds++;
+          try { yield* this.loopBody(node.body, fs, node); }
+          catch (e) { if (e instanceof BreakSig) break; if (!(e instanceof ContinueSig)) throw e; }
+          if (node.update) yield* this.eval(node.update, fs);
+        }
+        return;
+      }
+      case 'ForRange': {
+        const a = this.needNum(yield* this.eval(node.start, scope), node.start, 'the start of the range');
+        const b = this.needNum(yield* this.eval(node.end, scope), node.end, 'the end of the range');
+        let step = node.step ? this.needNum(yield* this.eval(node.step, scope), node.step, 'the step') : (a <= b ? 1 : -1);
+        if (step === 0) throw this.error(node.line, 'Step can\'t be 0', 'A step of 0 would never move forward, so the loop would go on forever.', 'Use a step like <code>step 2</code> or <code>step -1</code>.');
+        const total = Math.max(0, Math.floor((b - a) / step) + (node.exclusive ? ((b - a) % step === 0 ? 0 : 1) : 1));
+        this.ex(node, node.line, () => `🔁 Counting ${c(node.name)} from ${fmtNum(a)} ${node.exclusive ? 'up to (but not including)' : 'to'} ${fmtNum(b)}${step !== 1 ? ' in steps of ' + fmtNum(step) : ''} — that's ${total} round${total === 1 ? '' : 's'}.`);
+        const fs = new Scope(scope);
+        const rec = { value: a, type: 'auto' }; fs.vars.set(node.name, rec);
+        for (let v = a; step > 0 ? (node.exclusive ? v < b : v <= b) : (node.exclusive ? v > b : v >= b); v += step) {
+          rec.value = v;
+          this.ex(node.body, node.line, () => `   ↳ ${c(node.name)} is now ${fmtNum(v)}`);
+          try { yield* this.loopBody(node.body, fs, node); }
+          catch (e) { if (e instanceof BreakSig) break; if (!(e instanceof ContinueSig)) throw e; }
+        }
+        return;
+      }
+      case 'ForEach': {
+        const it = yield* this.eval(node.iter, scope);
+        let items;
+        if (Array.isArray(it)) items = it.slice();
+        else if (typeof it === 'string') items = [...it];
+        else if (typeof it === 'number' && Number.isInteger(it) && it >= 0) items = Array.from({ length: it }, (_, i) => i);
+        else throw this.error(node.line, 'Can\'t loop over that', `<code>for ${escapeHtml(node.name)} in ...</code> needs a list or some text to go through, but ${c(src(node.iter))} is ${KIND_WORD[kind(it)]}.`, 'Loop over a list like <code>for x in [1, 2, 3]</code>, or count with <code>for i in 1 to 10</code>.');
+        this.ex(node, node.line, () => `🔁 Going through ${c(src(node.iter))} one ${typeof it === 'string' ? 'letter' : 'item'} at a time (${items.length} total), calling each one ${c(node.name)}.`);
+        const fs = new Scope(scope); const rec = { value: null, type: 'auto' }; fs.vars.set(node.name, rec);
+        for (const x of items) {
+          rec.value = x;
+          this.ex(node.body, node.line, () => `   ↳ ${c(node.name)} is now ${show(x)}`);
+          try { yield* this.loopBody(node.body, fs, node); }
+          catch (e) { if (e instanceof BreakSig) break; if (!(e instanceof ContinueSig)) throw e; }
+        }
+        return;
+      }
+      case 'Repeat': {
+        const n = yield* this.eval(node.count, scope);
+        if (typeof n !== 'number' || !Number.isInteger(n) || n < 0) throw this.error(node.line, 'repeat needs a whole number', `<code>repeat</code> needs how many times as a whole number (0 or more), but got ${show(n)}.`, 'Write it like <code>repeat 3 { ... }</code>.');
+        this.ex(node, node.line, () => `🔁 Repeating the block ${n} time${n === 1 ? '' : 's'}.`);
+        for (let i = 0; i < n; i++) {
+          this.ex(node.body, node.line, () => `   ↳ round ${i + 1} of ${n}`);
+          try { yield* this.loopBody(node.body, scope, node); }
+          catch (e) { if (e instanceof BreakSig) break; if (!(e instanceof ContinueSig)) throw e; }
+        }
+        return;
+      }
+      case 'Return': throw new ReturnSig(node.value ? yield* this.eval(node.value, scope) : null);
+      case 'Break': this.sigLine = node.line; throw new BreakSig();
+      case 'Continue': this.sigLine = node.line; throw new ContinueSig();
+      case 'Expr': {
+        const e = node.expr;
+        const v = yield* this.eval(e, scope);
+        if (['Bin', 'Num', 'Str', 'Ident', 'Unary', 'Bool', 'List', 'Index'].includes(e.type))
+          this.ex(node, node.line, () => `💭 This line works out ${show(v)} but doesn't save or print it, so nothing happens. ${e.type === 'Str' ? 'Did you mean <code>cout ' + escapeHtml(src(e)) + '</code>?' : e.type === 'Bin' && e.left.type === 'Ident' ? 'To keep it, write <code>' + escapeHtml(e.left.name) + ' = ' + escapeHtml(src(e)) + '</code>.' : ''}`);
+        else if (e.type === 'Method' && typeof v === 'string' && e.obj.type === 'Ident')
+          this.ex(node, node.line, () => `💭 ${c(src(e))} made ${show(v)}, but text methods don't change the original. To keep it, write <code>${escapeHtml(e.obj.name)} = ${escapeHtml(src(e))}</code>.`);
+        return;
+      }
+    }
+    throw new Error('Unknown statement ' + node.type);
+  }
+
+  *execDecl(node, scope) {
+    const t = node.varType;
+    for (const it of node.items) {
+      if (scope.vars.has(it.name)) {
+        throw this.error(it.line, `"${it.name}" already exists`, `You already made a box called ${c(it.name)}${scope.vars.get(it.name).line ? ' on line ' + scope.vars.get(it.name).line : ''}. Writing the type again (${c(t)}) tries to make a brand new one.`,
+          `To change it, leave off the type: <code>${escapeHtml(it.name)} = ${it.init ? escapeHtml(src(it.init)) : '...'}</code>`);
+      }
+      let v, storeType = t;
+      if (it.size && t === 'char') {
+        storeType = 'string';
+        v = it.init ? yield* this.eval(it.init, scope) : '';
+        this.ex('chararr' + it.line, it.line, () => `🔤 ${c('char ' + it.name + '[...]')} is how real C stores text. Simple C treats it as a ${c('string')}, so it can never overflow. (Shortcut: ${c('string ' + it.name)})`);
+      } else if (it.size) {
+        const n = yield* this.eval(it.size, scope);
+        storeType = 'list';
+        if (it.init) v = yield* this.eval(it.init, scope);
+        else v = Array.from({ length: n }, () => this.defaultFor(t));
+        if (Array.isArray(v)) while (v.length < n) v.push(this.defaultFor(t));
+      } else if (it.init) v = yield* this.eval(it.init, scope);
+      else v = this.defaultFor(t);
+      if (it.init && it.init.type === 'List' && t !== 'list' && t !== 'auto' && !it.size) {
+        if (it.init.items.length === 1) v = v[0]; // int x{5}
+        else storeType = 'list';
+      }
+      if (v === null && it.init) throw this.error(it.line, 'Nothing to store', `${c(src(it.init))} doesn't give back any value, so there's nothing to put in ${c(it.name)}.`, 'Make sure the function ends with <code>return something</code>.');
+      v = this.coerce(storeType, deepCopy(v), it.name, it.line);
+      scope.vars.set(it.name, { value: v, type: storeType, isConst: node.isConst, line: it.line });
+      const tdesc = storeType === 'auto' ? `auto (I figured out it's ${KIND_WORD[kind(v)]})` : TYPE_DESC[storeType];
+      this.ex(it, it.line, () => it.init || it.size
+        ? `📦 Made a${node.isConst ? ' locked (const)' : ''} box called ${c(it.name)} — type ${tdesc} — and put ${show(v)} in it.`
+        : `📦 Made a box called ${c(it.name)} — type ${tdesc}. It starts out as ${show(v)}.`);
+    }
+  }
+  defaultFor(t) { return { int: 0, double: 0, string: '', bool: false, char: '', list: [] }[t] ?? null; }
+
+  *execPrint(node, scope) {
+    let text = '', joinNote = false;
+    this.inPrint++;
+    try {
+      const vals = [];
+      for (const p of node.parts) {
+        const v = yield* this.eval(p, scope);
+        if (v === null && p.type === 'Call') throw this.error(node.line, 'Nothing to print', `${c(src(p))} doesn't give back a value, so there's nothing to print.`, 'Make sure that function ends with <code>return something</code>, or call it on its own line.');
+        if (p.type === 'Bin' && p.op === '+' && typeof v === 'string') joinNote = true;
+        vals.push(v);
+      }
+      text = node.mode === 'line' ? vals.map(v => fmt(v)).join(' ') + '\n' : vals.map(v => fmt(v)).join('');
+    } finally { this.inPrint--; }
+    this.io.out(text);
+    this.ex(node, node.line, () => {
+      const shown = text.replace(/\n$/, '');
+      if (node.mode === 'line') return `🖨️ Printed ${show(shown)}${joinNote ? ' — the <b>+</b> glued the pieces into one piece of text' : ''}${node.parts.length > 1 ? ' — the commas put spaces between the pieces' : ''}.`;
+      return `🖨️ <code>cout &lt;&lt;</code> sent ${show(text)} to the screen${text.endsWith('\n') ? ' (endl = new line)' : ' — no <code>endl</code>, so the next output continues on the same line'}. Shortcut: <code>cout ${escapeHtml(node.parts.filter(p => !p.endl).map(src).join(' + ') || '""')}</code>`;
+    });
+  }
+
+  *readInto(target, prompt, scope, node) {
+    let name = target.type === 'Ident' ? target.name : src(target);
+    let rec = target.type === 'Ident' ? scope.find(target.name) : null;
+    const type = rec ? rec.type : 'auto';
+    this.ex('in' + node.line + name, node.line, () => `⌨️ Waiting for you to type something for ${c(name)}${rec ? ' — type ' + TYPE_DESC[type] : ''}…`);
+    for (;;) {
+      const raw = yield { input: true, prompt, name, type };
+      const r = this.parseTyped(raw, type);
+      if (r.ok) {
+        yield* this.store(target, r.value, scope, node, true);
+        this.ex('in2' + node.line + name, node.line, () => `   You typed ${show(r.value)} → stored it in ${c(name)}.`);
+        return;
+      }
+      this.io.warn(node.line, `⚠️ "${raw}" ${r.why}, but ${name} is ${type === 'int' ? 'an' : 'a'} ${TYPE_DESC[type]} box. Try again!`);
+    }
+  }
+  parseTyped(raw, type) {
+    const s = raw.trim();
+    const isNum = /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s);
+    switch (type) {
+      case 'int': return /^[+-]?\d+$/.test(s) ? { ok: true, value: parseInt(s, 10) } : { ok: false, why: isNum ? 'has a decimal point' : 'isn\'t a whole number' };
+      case 'double': return isNum ? { ok: true, value: parseFloat(s) } : { ok: false, why: 'isn\'t a number' };
+      case 'bool': {
+        const l = s.toLowerCase();
+        if (['true', 'yes', 'y', '1'].includes(l)) return { ok: true, value: true };
+        if (['false', 'no', 'n', '0'].includes(l)) return { ok: true, value: false };
+        return { ok: false, why: 'isn\'t true/false or yes/no' };
+      }
+      case 'char': return s.length ? { ok: true, value: s[0] } : { ok: false, why: 'is empty' };
+      case 'string': return { ok: true, value: raw };
+      case 'list': return { ok: true, value: s.split(/[\s,]+/).filter(Boolean).map(x => /^[+-]?(\d+\.?\d*|\.\d+)$/.test(x) ? parseFloat(x) : x) };
+      default: return { ok: true, value: isNum ? parseFloat(s) : raw };
+    }
+  }
+
+  coerce(type, v, name, line) {
+    const k = kind(v);
+    const fail = (fix) => { throw this.error(line, `Wrong kind of value for "${name}"`, `${c(name)} is ${type === 'int' || type === 'auto' ? 'an' : 'a'} ${TYPE_DESC[type]} box, but you tried to put ${KIND_WORD[k]} (${escapeHtml(show(v))}) in it.`, fix); };
+    switch (type) {
+      case 'auto': case undefined: return v;
+      case 'int':
+        if (k === 'number') {
+          if (!Number.isInteger(v) && isFinite(v)) { const t = Math.trunc(v); this.ex('trunc' + line + name, line, () => `✂️ ${c(name)} is an int (whole numbers only), so ${fmtNum(v)} got chopped to ${t}. Use <code>double</code> to keep decimals.`); return t; }
+          return v;
+        }
+        if (k === 'bool') return v ? 1 : 0;
+        if (k === 'text' && v.length === 1 && false) return v.charCodeAt(0);
+        return fail(k === 'text' ? `Use ${c('string ' + name)} to store text. If the text is a number like "42", convert it: ${c('toInt("42")')}.` : `Use ${c('list ' + name)} or ${c('auto ' + name)} instead.`);
+      case 'double':
+        if (k === 'number') return v;
+        if (k === 'bool') return v ? 1 : 0;
+        return fail(k === 'text' ? `If the text is a number like "2.5", convert it: ${c('toDouble("2.5")')}.` : `Use ${c('auto ' + name)} instead.`);
+      case 'string':
+        if (k === 'text') return v;
+        if (k === 'number' || k === 'bool') { const s = fmt(v); this.ex('tostr' + line + name, line, () => `🔤 ${c(name)} is a string, so I turned ${fmt(v)} into the text "${s}".`); return s; }
+        return fail(`Use ${c('list ' + name)} for lists, or ${c('.join(", ")')} to turn a list into text.`);
+      case 'char':
+        if (k === 'text' && v.length <= 1) return v;
+        if (k === 'number' && Number.isInteger(v)) return String.fromCharCode(v);
+        return fail(k === 'text' ? `A char holds exactly ONE letter, like ${c("'A'")}. For more letters use ${c('string ' + name)}.` : 'Use a single letter in quotes.');
+      case 'bool':
+        if (k === 'bool') return v;
+        if (k === 'number') return v !== 0;
+        return fail(`A bool only holds ${c('true')} or ${c('false')}.`);
+      case 'list':
+        if (k === 'list') return v;
+        return fail(`Lists use square brackets, like ${c('[1, 2, 3]')}. To add one item use ${c(name + '.add(value)')}.`);
+      case 'void': return v;
+    }
+    return v;
+  }
+
+  truthy(v, node) {
+    switch (kind(v)) {
+      case 'bool': return v;
+      case 'number': return v !== 0;
+      case 'text': return v.length > 0;
+      case 'list': return v.length > 0;
+      default: return false;
+    }
+  }
+  needNum(v, node, what) {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'boolean') return v ? 1 : 0;
+    throw this.error(node.line, 'Expected a number', `For ${what} I need a number, but ${c(src(node))} is ${KIND_WORD[kind(v)]} (${escapeHtml(show(v))}).`, kind(v) === 'text' ? `If it's a number stored as text, convert it with ${c('toInt(' + src(node) + ')')}.` : 'Use a number here.');
+  }
+  whereVars(node, scope) {
+    const names = [...identsIn(node)].filter(n => scope.find(n)).slice(0, 3);
+    if (!names.length) return '';
+    return ` <span class="vars">(${names.map(n => escapeHtml(n) + ' = ' + escapeHtml(show(scope.find(n).value))).join(', ')})</span>`;
+  }
+
+  unknownName(node, scope) {
+    const name = node.name;
+    const best = closest(name, [...scope.names(), ...this.funcs.keys()]);
+    let fix;
+    if (best) fix = `Did you mean ${c(best)}? (Spelling and capital letters must match exactly.)`;
+    else if (this.inPrint) fix = `If you meant the word as text, put it in quotes: ${c('cout "' + name + '"')}. Otherwise create the box first: ${c('auto ' + name + ' = ...')}`;
+    else fix = `Create it first, like ${c('auto ' + name + ' = 0')} or ${c('string ' + name + ' = "..."')}.`;
+    return this.error(node.line, `I don't know what "${name}" is`, `You used ${c(name)}, but there's no box (variable) with that name${this.funcs.has(name) ? '' : ' yet'}.`, fix);
+  }
+
+  *eval(node, scope) {
+    switch (node.type) {
+      case 'Num': case 'Str': case 'Bool': return node.value;
+      case 'List': { const arr = []; for (const e of node.items) arr.push(deepCopy(yield* this.eval(e, scope))); return arr; }
+      case 'Ident': {
+        const rec = scope.find(node.name);
+        if (!rec) {
+          if (this.funcs.has(node.name) || BUILTIN_NAMES.includes(node.name)) throw this.error(node.line, `${node.name} is a function`, `${c(node.name)} is a function, so it needs <code>( )</code> after it to run.`, `Write ${c(node.name + '()')}.`);
+          throw this.unknownName(node, scope);
+        }
+        return rec.value;
+      }
+      case 'Unary': {
+        const v = yield* this.eval(node.arg, scope);
+        if (node.op === '!') return !this.truthy(v, node.arg);
+        const n = this.needNum(v, node.arg, `<code>${node.op}</code>`);
+        return node.op === '-' ? -n : n;
+      }
+      case 'Bin': {
+        if (node.op === '&&') { const l = yield* this.eval(node.left, scope); if (!this.truthy(l)) return false; return this.truthy(yield* this.eval(node.right, scope)); }
+        if (node.op === '||') { const l = yield* this.eval(node.left, scope); if (this.truthy(l)) return true; return this.truthy(yield* this.eval(node.right, scope)); }
+        const l = yield* this.eval(node.left, scope);
+        const r = yield* this.eval(node.right, scope);
+        return this.binop(node.op, l, r, node);
+      }
+      case 'Ternary': return this.truthy(yield* this.eval(node.c, scope)) ? yield* this.eval(node.a, scope) : yield* this.eval(node.b, scope);
+      case 'Assign': {
+        let v = yield* this.eval(node.value, scope);
+        if (v === null && node.value.type === 'Call') throw this.error(node.line, 'Nothing to store', `${c(src(node.value))} doesn't give back a value.`, 'Make sure the function ends with <code>return something</code>.');
+        if (node.op !== '=') { const old = yield* this.eval(node.target, scope); v = this.binop(node.op[0], old, v, node); }
+        yield* this.store(node.target, v, scope, node, false);
+        return v;
+      }
+      case 'Inc': {
+        const old = yield* this.eval(node.target, scope);
+        if (typeof old !== 'number') throw this.error(node.line, `Can't ${node.op === '++' ? 'add 1 to' : 'subtract 1 from'} that`, `${c(src(node.target))} is ${KIND_WORD[kind(old)]}, and <code>${node.op}</code> only works on numbers.`, 'Use it on a number variable.');
+        const nv = node.op === '++' ? old + 1 : old - 1;
+        yield* this.store(node.target, nv, scope, node, true);
+        this.ex(node, node.line, () => `${node.op === '++' ? '➕' : '➖'} ${c(src(node))} → ${c(src(node.target))} went from ${fmtNum(old)} to ${fmtNum(nv)}.`);
+        return node.prefix ? nv : old;
+      }
+      case 'Index': {
+        const obj = yield* this.eval(node.obj, scope);
+        const idx = yield* this.eval(node.idx, scope);
+        if (!Array.isArray(obj) && typeof obj !== 'string') throw this.error(node.line, 'Can\'t use [ ] on that', `${c(src(node.obj))} is ${KIND_WORD[kind(obj)]}. Square brackets only work on lists and text.`, 'Use <code>[ ]</code> on a list (like <code>nums[0]</code>) or text (like <code>name[0]</code>).');
+        return obj[this.checkIndex(obj, idx, node)];
+      }
+      case 'Method': {
+        const obj = yield* this.eval(node.obj, scope);
+        const args = [];
+        for (const a of node.args || []) args.push(yield* this.eval(a, scope));
+        return this.method(obj, node.name, args, node);
+      }
+      case 'Call': return yield* this.call(node, scope);
+      case 'AddrOf': throw this.error(node.line, 'No addresses needed here', `<code>&amp;${escapeHtml(src(node.target))}</code> means "the memory address of ${escapeHtml(src(node.target))}". In Simple C you only need <code>&amp;</code> inside <code>scanf</code>.`, `Just write ${c(src(node.target))}.`);
+    }
+    throw new Error('Unknown expression ' + node.type);
+  }
+
+  checkIndex(obj, idx, node) {
+    const what = typeof obj === 'string' ? 'letters' : 'items';
+    if (typeof idx !== 'number' || !Number.isInteger(idx)) throw this.error(node.line, 'Spot number must be a whole number', `Inside <code>[ ]</code> I need a whole number like 0, 1, 2… but got ${escapeHtml(show(idx))}.`, kind(idx) === 'text' ? `If it's a number stored as text, use ${c('toInt(...)')}.` : 'Use a whole number.');
+    let i = idx;
+    if (i < 0 && -i <= obj.length) { i = obj.length + i; this.ex('neg' + node.line, node.line, () => `🔙 Negative spots count from the end: [${idx}] means spot ${i}. (Real C++ can't do this!)`); }
+    if (i < 0 || i >= obj.length) {
+      const nm = src(node.obj);
+      throw this.error(node.line, 'That spot doesn\'t exist', obj.length === 0 ? `${c(nm)} is empty (0 ${what}), so there's no spot ${idx}.` : `${c(nm)} has ${obj.length} ${what}, so the spots go from 0 to ${obj.length - 1}. You asked for spot ${idx}.`,
+        obj.length ? `Remember: counting starts at 0! The first is ${c(nm + '[0]')} and the last is ${c(nm + '[' + (obj.length - 1) + ']')} (or ${c(nm + '[-1]')}).${Array.isArray(obj) ? ' To add a new item use ' + c(nm + '.add(x)') + '.' : ''}` : `Add something first${Array.isArray(obj) ? ' with ' + c(nm + '.add(x)') : ''}.`);
+    }
+    return i;
+  }
+
+  *store(target, v, scope, node, quiet) {
+    if (target.type === 'Ident') {
+      const name = target.name;
+      const rec = scope.find(name);
+      if (!rec) {
+        if (this.funcs.has(name)) throw this.error(node.line, `"${name}" is a function`, `${c(name)} is the name of a function, so you can't store a value in it.`, 'Pick a different name for your variable.');
+        const best = closest(name, scope.names());
+        scope.vars.set(name, { value: deepCopy(v), type: 'auto', line: node.line });
+        if (best) this.io.warn(node.line, `💡 Line ${node.line}: "${name}" didn't exist, so I made a new box. Did you mean "${best}"?`);
+        this.ex('auto' + node.line + name, node.line, () => `📦 ${c(name)} didn't exist yet, so I made it for you and put ${show(v)} in it. (Real C++ would need ${c('auto ' + name + ' = ...')}.)`);
+        return;
+      }
+      if (rec.isConst) throw this.error(node.line, `"${name}" is locked`, `${c(name)} was made with <code>const</code>, which means it can never change.`, `Remove <code>const</code> where ${c(name)} is created if it needs to change.`);
+      const old = rec.value;
+      rec.value = this.coerce(rec.type, deepCopy(v), name, node.line);
+      if (!quiet) this.ex(node, node.line, () => `✏️ ${c(name)} changed from ${show(old)} to ${show(rec.value)}.`);
+      return;
+    }
+    if (target.type === 'Index') {
+      const obj = yield* this.eval(target.obj, scope);
+      const idx = yield* this.eval(target.idx, scope);
+      if (Array.isArray(obj)) {
+        const i = this.checkIndex(obj, idx, target);
+        obj[i] = deepCopy(v);
+        if (!quiet) this.ex(node, node.line, () => `✏️ Spot ${i} of ${c(src(target.obj))} is now ${show(v)}.`);
+        return;
+      }
+      if (typeof obj === 'string') {
+        if (typeof v !== 'string' || v.length !== 1) throw this.error(node.line, 'One letter at a time', `Each spot in text holds exactly one letter, but you tried to put ${escapeHtml(show(v))} there.`, `Use one letter in quotes, like ${c("'A'")}.`);
+        if (target.obj.type !== 'Ident') throw this.error(node.line, 'Can\'t change that', 'You can only change letters of text stored in a variable.', 'Store it in a variable first.');
+        const i = this.checkIndex(obj, idx, target);
+        yield* this.store(target.obj, obj.slice(0, i) + v + obj.slice(i + 1), scope, node, quiet);
+        return;
+      }
+      throw this.error(node.line, 'Can\'t use [ ] on that', `${c(src(target.obj))} is ${KIND_WORD[kind(obj)]}. Square brackets only work on lists and text.`, '');
+    }
+  }
+
+  binop(op, l, r, node) {
+    const kl = kind(l), kr = kind(r);
+    const L = src(node.left || node.target), R = src(node.right || node.value);
+    if (kl === 'nothing' || kr === 'nothing') throw this.error(node.line, 'Using an empty value', `${c(kl === 'nothing' ? L : R)} is empty (it holds nothing yet), so I can't use it with <code>${escapeHtml(op)}</code>.`, 'Give it a value first.');
+    const num = x => typeof x === 'boolean' ? (x ? 1 : 0) : x;
+    const bothNum = (kl === 'number' || kl === 'bool') && (kr === 'number' || kr === 'bool');
+    const mathOnly = (word) => {
+      const txt = kl === 'text' ? L : R;
+      throw this.error(node.line, `Can't ${word} ${kl === 'list' || kr === 'list' ? 'lists' : 'text'}`, `${c(L + ' ' + op + ' ' + R)}: <code>${escapeHtml(op)}</code> only works on numbers, but ${c(kl === 'number' ? R : L)} is ${KIND_WORD[kl === 'number' ? kr : kl]}.`,
+        (kl === 'text' || kr === 'text') ? (/^\s*[+-]?\d/.test(kl === 'text' ? l : r) ? `${c(txt)} looks like a number stored as text. Convert it first: ${c('toInt(' + txt + ')')}.` : `Math like ${c(op)} needs numbers.${op === '-' ? '' : ''} To join text together, use ${c('+')} instead.`) : 'Use numbers here.');
+    };
+    switch (op) {
+      case '+':
+        if (kl === 'list' && kr === 'list') return l.concat(deepCopy(r));
+        if (kl === 'list' || kr === 'list') throw this.error(node.line, 'Can\'t + a list and a single value', `${c(L + ' + ' + R)} mixes a list with ${KIND_WORD[kl === 'list' ? kr : kl]}.`, `To add one item to a list use ${c((kl === 'list' ? L : R) + '.add(' + (kl === 'list' ? R : L) + ')')}. To print them together, use ${c('.join(", ")')}.`);
+        if (kl === 'text' || kr === 'text') return fmt(l) + fmt(r);
+        return num(l) + num(r);
+      case '-': if (!bothNum) mathOnly('subtract'); return num(l) - num(r);
+      case '*':
+        if (bothNum) return num(l) * num(r);
+        if ((kl === 'text' || kl === 'list') && kr === 'number' || kl === 'number' && (kr === 'text' || kr === 'list')) {
+          const [s, n] = kl === 'number' ? [r, l] : [l, r];
+          if (!Number.isInteger(n) || n < 0) throw this.error(node.line, 'Repeat count must be a whole number', `To repeat ${KIND_WORD[kind(s)]} you multiply by a whole number (0 or more), but got ${fmtNum(n)}.`, `Like ${c('"ha" * 3')}.`);
+          this.ex('rep' + node.line, node.line, () => `✖️ ${c(L + ' * ' + R)} repeats ${typeof s === 'string' ? 'the text' : 'the list'} ${n} time${n === 1 ? '' : 's'}. (Real C++ can't do this!)`);
+          return typeof s === 'string' ? s.repeat(n) : Array.from({ length: n }, () => deepCopy(s)).flat();
+        }
+        mathOnly('multiply');
+      case '/':
+        if (!bothNum) mathOnly('divide');
+        if (num(r) === 0) throw this.error(node.line, 'Dividing by zero', `${c(L + ' / ' + R)} tries to divide by 0. Nobody can split something into 0 groups — not even a computer!`, node.right && node.right.type === 'Num' ? 'Divide by a different number.' : `Check that ${c(R)} isn't 0 before dividing, e.g. ${c('if ' + R + ' != 0 { ... }')}.`);
+        {
+          const res = num(l) / num(r);
+          if (Number.isInteger(num(l)) && Number.isInteger(num(r)) && !Number.isInteger(res))
+            this.ex('div' + node.line, node.line, () => `➗ ${c(L + ' / ' + R)} = ${fmtNum(res)}. (In real C++, whole ÷ whole chops off the decimals and gives ${Math.trunc(res)}. Simply C++ gives the true answer — use ${c('floor(...)')} if you want it chopped.)`);
+          return res;
+        }
+      case '%':
+        if (!bothNum) mathOnly('get the remainder of');
+        if (num(r) === 0) throw this.error(node.line, 'Remainder by zero', `${c(L + ' % ' + R)} asks for the remainder after dividing by 0, which is impossible.`, `Make sure ${c(R)} isn't 0.`);
+        return num(l) % num(r);
+      case '==': return this.equal(l, r);
+      case '!=': return !this.equal(l, r);
+      case '<': case '>': case '<=': case '>=': {
+        let a, b;
+        if (bothNum) { a = num(l); b = num(r); }
+        else if (kl === 'text' && kr === 'text') { a = l; b = r; }
+        else throw this.error(node.line, 'Can\'t compare these', `${c(L + ' ' + op + ' ' + R)} compares ${KIND_WORD[kl]} with ${KIND_WORD[kr]}, which doesn't make sense.`, (kl === 'text' || kr === 'text') ? `If the text holds a number, convert it first with ${c('toInt(...)')}.` : 'Compare numbers with numbers, or text with text.');
+        return op === '<' ? a < b : op === '>' ? a > b : op === '<=' ? a <= b : a >= b;
+      }
+    }
+    throw this.error(node.line, 'Unknown operator', `I don't know how to do <code>${escapeHtml(op)}</code>.`, '');
+  }
+  equal(a, b) {
+    const ka = kind(a), kb = kind(b);
+    if ((ka === 'number' || ka === 'bool') && (kb === 'number' || kb === 'bool')) return Number(a) === Number(b);
+    if (ka !== kb) return false;
+    if (ka === 'list') return a.length === b.length && a.every((x, i) => this.equal(x, b[i]));
+    return a === b;
+  }
+
+  method(obj, name, args, node) {
+    const k = kind(obj), m = name.toLowerCase(), O = src(node.obj);
+    const need = (n, usage) => {
+      const ok = Array.isArray(n) ? args.length >= n[0] && args.length <= n[1] : args.length === n;
+      if (!ok) throw this.error(node.line, `Wrong number of inputs for .${name}()`, `${c('.' + name + '()')} needs ${Array.isArray(n) ? n[0] + ' to ' + n[1] : n} input${n === 1 ? '' : 's'}, but you gave it ${args.length}.`, `Write it like ${c(usage)}.`);
+    };
+    const numArg = (v, what) => { if (typeof v !== 'number') throw this.error(node.line, 'Expected a number', `${what} must be a number, but got ${escapeHtml(show(v))}.`, ''); return v; };
+    if (k === 'text') {
+      const s = obj;
+      switch (m) {
+        case 'length': case 'size': case 'len': need(0, O + '.length()'); return s.length;
+        case 'upper': case 'toupper': case 'touppercase': case 'uppercase': need(0, O + '.upper()'); return s.toUpperCase();
+        case 'lower': case 'tolower': case 'tolowercase': case 'lowercase': need(0, O + '.lower()'); return s.toLowerCase();
+        case 'contains': case 'includes': case 'has': need(1, O + '.contains("x")'); return s.includes(fmt(args[0]));
+        case 'startswith': need(1, O + '.startsWith("x")'); return s.startsWith(fmt(args[0]));
+        case 'endswith': need(1, O + '.endsWith("x")'); return s.endsWith(fmt(args[0]));
+        case 'find': case 'indexof': need(1, O + '.find("x")'); return s.indexOf(fmt(args[0]));
+        case 'replace': need(2, O + '.replace("old", "new")'); return s.split(fmt(args[0])).join(fmt(args[1]));
+        case 'split': need([0, 1], O + '.split(",")'); return args.length ? s.split(fmt(args[0])) : s.split(/\s+/).filter(Boolean);
+        case 'words': need(0, O + '.words()'); return s.split(/\s+/).filter(Boolean);
+        case 'chars': case 'letters': need(0, O + '.letters()'); return [...s];
+        case 'trim': need(0, O + '.trim()'); return s.trim();
+        case 'reverse': case 'reversed': need(0, O + '.reverse()'); return [...s].reverse().join('');
+        case 'substr': case 'substring': need([1, 2], O + '.substr(start, howMany)'); return s.substr(numArg(args[0], 'start'), args.length > 1 ? numArg(args[1], 'how many') : undefined);
+        case 'slice': need([1, 2], O + '.slice(start, end)'); return s.slice(numArg(args[0], 'start'), args.length > 1 ? numArg(args[1], 'end') : undefined);
+        case 'repeat': need(1, O + '.repeat(3)'); return s.repeat(Math.max(0, numArg(args[0], 'times')));
+        case 'at': case 'charat': case 'get': need(1, O + '.at(0)'); return s[this.checkIndex(s, args[0], node)];
+        case 'count': need([0, 1], O + '.count("a")'); return args.length ? (fmt(args[0]) ? s.split(fmt(args[0])).length - 1 : 0) : s.length;
+        case 'isnumber': case 'isnum': need(0, O + '.isNumber()'); return /^\s*[+-]?(\d+\.?\d*|\.\d+)\s*$/.test(s);
+        case 'toint': case 'stoi': need(0, O + '.toInt()'); return this.toNum(s, true, node);
+        case 'todouble': case 'tonumber': case 'stod': need(0, O + '.toDouble()'); return this.toNum(s, false, node);
+        case 'empty': case 'isempty': need(0, O + '.empty()'); return s.length === 0;
+        case 'capitalize': need(0, O + '.capitalize()'); return s.charAt(0).toUpperCase() + s.slice(1);
+        case 'push_back': case 'add': case 'append':
+          throw this.error(node.line, 'Text doesn\'t have .' + name + '()', `To add to text, glue it with +.`, `Write ${c(O + ' = ' + O + ' + ' + (node.args[0] ? src(node.args[0]) : '"more"'))}.`);
+      }
+      return this.noMethod(name, 'text', ['length','upper','lower','contains','startsWith','endsWith','find','replace','split','trim','reverse','substr','slice','repeat','at','count','isNumber','toInt','toDouble','empty','capitalize','words','letters'], node);
+    }
+    if (k === 'list') {
+      const a = obj;
+      const numsOnly = (what) => { if (!a.every(x => typeof x === 'number')) throw this.error(node.line, `Can't ${what} that list`, `${c('.' + name + '()')} only works when every item is a number, but ${c(O)} is ${escapeHtml(show(a))}.`, 'Use a list of numbers.'); };
+      const nonEmpty = () => { if (!a.length) throw this.error(node.line, 'The list is empty', `${c(O)} has no items, so ${c('.' + name + '()')} has nothing to give back.`, `Add items first with ${c(O + '.add(x)')}.`); };
+      switch (m) {
+        case 'add': case 'push': case 'push_back': case 'append': case 'emplace_back': {
+          need([1, 99], O + '.add(x)'); for (const x of args) a.push(deepCopy(x));
+          this.ex(node, node.line, () => `➕ Added ${args.map(show).join(', ')} to ${c(O)} — it now has ${a.length} item${a.length === 1 ? '' : 's'}: ${show(a)}`);
+          return a;
+        }
+        case 'pop': case 'pop_back': { need(0, O + '.pop()'); nonEmpty(); const v = a.pop(); this.ex(node, node.line, () => `➖ Took ${show(v)} off the end of ${c(O)}.`); return v; }
+        case 'remove': { need(1, O + '.remove(x)'); const i = a.findIndex(x => this.equal(x, args[0])); if (i >= 0) a.splice(i, 1); this.ex(node, node.line, () => i >= 0 ? `➖ Removed ${show(args[0])} from ${c(O)}.` : `🤷 ${show(args[0])} wasn't in ${c(O)}, so nothing was removed.`); return i >= 0; }
+        case 'removeat': case 'erase': case 'delete': { need(1, O + '.removeAt(0)'); const i = this.checkIndex(a, args[0], node); const v = a.splice(i, 1)[0]; this.ex(node, node.line, () => `➖ Removed spot ${i} (${show(v)}) from ${c(O)}.`); return v; }
+        case 'insert': { need(2, O + '.insert(spot, x)'); const i = numArg(args[0], 'The spot'); if (i < 0 || i > a.length) this.checkIndex(a, i, node); a.splice(i, 0, deepCopy(args[1])); return a; }
+        case 'size': case 'length': case 'len': need(0, O + '.size()'); return a.length;
+        case 'count': need([0, 1], O + '.count(x)'); return args.length ? a.filter(x => this.equal(x, args[0])).length : a.length;
+        case 'contains': case 'includes': case 'has': need(1, O + '.contains(x)'); return a.some(x => this.equal(x, args[0]));
+        case 'indexof': case 'find': need(1, O + '.indexOf(x)'); return a.findIndex(x => this.equal(x, args[0]));
+        case 'sort': need(0, O + '.sort()');
+          if (a.every(x => typeof x === 'number')) a.sort((x, y) => x - y); else a.sort((x, y) => fmt(x) < fmt(y) ? -1 : fmt(x) > fmt(y) ? 1 : 0);
+          this.ex(node, node.line, () => `🔢 Sorted ${c(O)} smallest → biggest: ${show(a)}`); return a;
+        case 'reverse': need(0, O + '.reverse()'); a.reverse(); return a;
+        case 'join': need([0, 1], O + '.join(", ")'); return a.map(x => fmt(x)).join(args.length ? fmt(args[0]) : ', ');
+        case 'clear': need(0, O + '.clear()'); a.length = 0; return a;
+        case 'first': case 'front': need(0, O + '.first()'); nonEmpty(); return a[0];
+        case 'last': case 'back': need(0, O + '.last()'); nonEmpty(); return a[a.length - 1];
+        case 'sum': need(0, O + '.sum()'); numsOnly('add up'); return a.reduce((x, y) => x + y, 0);
+        case 'max': need(0, O + '.max()'); nonEmpty(); numsOnly('find the max of'); return Math.max(...a);
+        case 'min': need(0, O + '.min()'); nonEmpty(); numsOnly('find the min of'); return Math.min(...a);
+        case 'average': case 'avg': case 'mean': need(0, O + '.average()'); nonEmpty(); numsOnly('average'); return a.reduce((x, y) => x + y, 0) / a.length;
+        case 'empty': case 'isempty': need(0, O + '.empty()'); return a.length === 0;
+        case 'shuffle': need(0, O + '.shuffle()'); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a;
+        case 'copy': need(0, O + '.copy()'); return deepCopy(a);
+        case 'get': case 'at': need(1, O + '.get(0)'); return a[this.checkIndex(a, args[0], node)];
+        case 'set': need(2, O + '.set(0, x)'); a[this.checkIndex(a, args[0], node)] = deepCopy(args[1]); return a;
+        case 'slice': need([1, 2], O + '.slice(start, end)'); return a.slice(numArg(args[0], 'start'), args.length > 1 ? numArg(args[1], 'end') : undefined);
+      }
+      return this.noMethod(name, 'a list', ['add','pop','remove','removeAt','insert','size','count','contains','indexOf','sort','reverse','join','clear','first','last','sum','max','min','average','empty','shuffle','copy','slice'], node);
+    }
+    throw this.error(node.line, `${KIND_WORD[k]} doesn't have methods`, `${c(O)} is ${KIND_WORD[k]} (${escapeHtml(show(obj))}), and ${c('.' + name + '()')} only works on text or lists.`,
+      k === 'number' ? `For numbers use helper functions instead, like ${c(name + '(' + O + ')')} — e.g. ${c('round(x)')}, ${c('sqrt(x)')}, ${c('toString(x)')}.` : 'Check what is stored in that variable.');
+  }
+  noMethod(name, what, list, node) {
+    const best = closest(name, list);
+    throw this.error(node.line, `Unknown method .${name}()`, `${what === 'text' ? 'Text' : 'A list'} doesn't have a method called ${c('.' + name + '()')}.`,
+      (best ? `Did you mean ${c('.' + best + '()')}? ` : '') + `Available: ${list.map(x => '<code>.' + x + '()</code>').join(' ')}`);
+  }
+  toNum(s, int, node) {
+    const t = String(s).trim();
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(t)) throw this.error(node.line, 'That text isn\'t a number', `I tried to turn ${escapeHtml(show(s))} into a number, but it has things in it that aren't digits.`, `Only text like "42" or "3.5" can be turned into a number. Check with ${c('.isNumber()')} first.`);
+    return int ? Math.trunc(parseFloat(t)) : parseFloat(t);
+  }
+
+  *call(node, scope) {
+    const name = node.name;
+    const fn = this.funcs.get(name);
+    if (!fn && name === 'scanf') return yield* this.scanf(node, scope);
+    if (!fn && name === 'printf') return yield* this.printf(node, scope);
+    if (!fn && (name === 'strcpy' || name === 'strcat')) {
+      if (node.args.length !== 2) throw this.error(node.line, `${name}() needs 2 inputs`, `${c(name + '(destination, source)')} copies${name === 'strcat' ? ' (adds)' : ''} text into a variable.`, `Write ${c(name + '(name, "Sam")')}. Easier: ${c(name === 'strcpy' ? 'name = "Sam"' : 'name = name + "Sam"')}.`);
+      let tgt = node.args[0]; if (tgt.type === 'AddrOf') tgt = tgt.target;
+      if (tgt.type !== 'Ident' && tgt.type !== 'Index') throw this.error(node.line, `${name}() needs a variable first`, `The first input of ${c(name)} must be a variable to put the text into.`, `Like ${c(name + '(name, "Sam")')}.`);
+      const val = fmt(yield* this.eval(node.args[1], scope));
+      const nv = name === 'strcpy' ? val : fmt(yield* this.eval(tgt, scope)) + val;
+      yield* this.store(tgt, nv, scope, node, true);
+      this.ex(node, node.line, () => `✏️ ${c(name)} → ${c(src(tgt))} is now ${show(nv)}. (Simple C shortcut: ${c(src(tgt) + (name === 'strcpy' ? ' = ' : ' = ' + src(tgt) + ' + ') + src(node.args[1]))} — and no buffer-size worries!)`);
+      return nv;
+    }
+    if (name === 'getline') {
+      const tgt = node.args[1] || node.args[0];
+      if (!tgt || (tgt.type !== 'Ident' && tgt.type !== 'Index')) throw this.error(node.line, 'getline needs a variable', 'Write it like <code>getline(cin, name)</code>.', 'Or the easy way: <code>cin name</code>');
+      yield* this.readInto(tgt, null, scope, node); return true;
+    }
+    const args = [];
+    for (const a of node.args) args.push(yield* this.eval(a, scope));
+    if (fn) {
+      if (name === 'main') this.mainCalled = true;
+      return yield* this.callUser(fn, args, node, scope);
+    }
+    return yield* this.builtin(name, args, node, scope);
+  }
+  *callUser(fn, args, node) {
+    const required = fn.params.filter(p => !p.def).length;
+    if (args.length < required || args.length > fn.params.length) {
+      throw this.error(node.line, `Wrong number of inputs for ${fn.name}()`, `${c(fn.name)} needs ${required === fn.params.length ? required : required + ' to ' + fn.params.length} input${fn.params.length === 1 ? '' : 's'}${fn.params.length ? ' (' + fn.params.map(p => p.name).join(', ') + ')' : ''}, but you gave it ${args.length}.`,
+        `Call it like ${c(fn.name + '(' + fn.params.map(p => p.name).join(', ') + ')')}.`);
+    }
+    if (++this.depth > 300) { this.depth = 0; throw this.error(node.line, 'Too many calls inside calls', `${c(fn.name)} kept calling itself (or other functions) over 300 levels deep. This usually means a function calls itself forever.`, 'Make sure a function that calls itself has a stopping case, like <code>if n == 0 { return 1 }</code>.'); }
+    const fs = new Scope(this.global);
+    for (let i = 0; i < fn.params.length; i++) {
+      const p = fn.params[i];
+      let v = i < args.length ? args[i] : yield* this.eval(p.def, fs);
+      v = this.coerce(p.type, p.ref ? v : deepCopy(v), p.name, fn.line);
+      fs.vars.set(p.name, { value: v, type: p.type, line: fn.line });
+    }
+    if (fn.name !== 'main') this.ex('call:' + fn.name + ':' + node.line, node.line, () => `📞 Calling ${c(fn.name)}${fn.params.length ? ' with ' + fn.params.map((p, i) => escapeHtml(p.name) + ' = ' + escapeHtml(show(fs.vars.get(p.name).value))).join(', ') : ''} → jumping to line ${fn.line}.`);
+    let ret = null;
+    try { yield* this.execList(fn.body, fs); }
+    catch (e) {
+      if (e instanceof ReturnSig) ret = e.value;
+      else if (e instanceof BreakSig || e instanceof ContinueSig) throw this.error(this.sigLine, `"${e instanceof BreakSig ? 'break' : 'continue'}" outside a loop`, 'It only works inside a loop.', 'Use <code>return</code> to leave a function early.');
+      else throw e;
+    } finally { this.depth--; }
+    if (fn.retType !== 'void' && fn.retType !== 'auto') {
+      if (ret === null) {
+        if (fn.name === 'main') return 0;
+        throw this.error(fn.line, `${fn.name}() forgot to give back an answer`, `${c(fn.name)} says it gives back ${TYPE_DESC[fn.retType]}, but it finished without a <code>return</code>.`, `Add ${c('return something')} at the end, or change it to ${c('func ' + fn.name)} / ${c('void ' + fn.name)}.`);
+      }
+      ret = this.coerce(fn.retType, ret, fn.name + '()\'s answer', fn.line);
+    }
+    if (fn.name !== 'main') this.ex('ret:' + fn.name + ':' + node.line, node.line, () => ret === null ? `↩️ ${c(fn.name)} finished — back to line ${node.line}.` : `↩️ ${c(fn.name)} gave back ${show(ret)} — back to line ${node.line}.`);
+    return ret;
+  }
+
+  *printf(node, scope) {
+    if (!node.args.length) throw this.error(node.line, 'printf needs something to print', '<code>printf</code> needs at least a text in quotes.', 'Like <code>printf("Hello\\n");</code> — or the easy way: <code>print "Hello"</code>');
+    const fmtV = yield* this.eval(node.args[0], scope);
+    if (typeof fmtV !== 'string') throw this.error(node.line, 'printf starts with text', `The first thing inside <code>printf( )</code> must be text in quotes (the "template"), but it's ${KIND_WORD[kind(fmtV)]}.`, `Like ${c('printf("%d\\n", ' + src(node.args[0]) + ')')} — or just ${c('print ' + src(node.args[0]))}.`);
+    const vals = [];
+    for (const a of node.args.slice(1)) vals.push(yield* this.eval(a, scope));
+    let vi = 0; const filled = [];
+    const out = fmtV.replace(/%([-+ 0#]*)(\d+)?(?:\.(\d+))?(hh|h|ll|l|L|z)?([diufFeEgGxXoscp%])?/g, (m, flags, width, prec, len, conv) => {
+      if (!conv) throw this.error(node.line, 'Unfinished % placeholder', `${c(m)} in your printf template isn't a placeholder I know.`, 'Use <code>%d</code> (whole number), <code>%f</code> (decimal), <code>%s</code> (text), <code>%c</code> (letter), or <code>%%</code> for a % sign.');
+      if (conv === '%') return '%';
+      if (vi >= vals.length) throw this.error(node.line, 'printf is missing a value', `Your template has more <code>%</code> placeholders than values. Placeholder ${c(m)} (number ${vi + 1}) has nothing to fill it.`, `Add a value after the template for each placeholder, like ${c('printf("%d and %d", a, b)')}.`);
+      const v = vals[vi], argNode = node.args[vi + 1]; vi++;
+      let str;
+      const wantNum = 'diufFeEgGxXo'.includes(conv);
+      if (wantNum && typeof v !== 'number' && typeof v !== 'boolean') {
+        throw this.error(node.line, `${m} needs a number`, `${c(m)} is a number placeholder, but ${c(src(argNode))} is ${KIND_WORD[kind(v)]} (${escapeHtml(show(v))}). Real C would print garbage here!`, `Use ${c('%s')} for text${kind(v) === 'text' && v.length === 1 ? ' or ' + c('%c') + ' for one letter' : ''}.`);
+      }
+      const n = Number(v);
+      switch (conv) {
+        case 'd': case 'i': case 'u':
+          if (!Number.isInteger(n)) this.ex('pf-trunc' + node.line + vi, node.line, () => `✂️ ${c(m)} prints whole numbers, so ${fmtNum(n)} showed as ${Math.trunc(n)}. Use ${c('%f')} or ${c('%.2f')} for decimals.`);
+          str = String(Math.trunc(n)); break;
+        case 'f': case 'F': str = n.toFixed(prec != null ? +prec : 6); break;
+        case 'e': case 'E': str = n.toExponential(prec != null ? +prec : 6); if (conv === 'E') str = str.toUpperCase(); break;
+        case 'g': case 'G': str = String(parseFloat(n.toPrecision(prec ? +prec : 6))); break;
+        case 'x': str = Math.trunc(n).toString(16); break;
+        case 'X': str = Math.trunc(n).toString(16).toUpperCase(); break;
+        case 'o': str = Math.trunc(n).toString(8); break;
+        case 'c': str = typeof v === 'number' ? String.fromCharCode(v) : fmt(v).charAt(0); break;
+        case 's': str = fmt(v); if (prec != null) str = str.slice(0, +prec); break;
+        case 'p': str = '0x7ffd' + (vi * 4096).toString(16); break;
+      }
+      if (flags.includes('+') && wantNum && n >= 0) str = '+' + str;
+      if (width && str.length < +width) str = flags.includes('-') ? str.padEnd(+width) : str.padStart(+width, flags.includes('0') && wantNum ? '0' : ' ');
+      filled.push(`${escapeHtml(m)} ← ${escapeHtml(show(v))}`);
+      return str;
+    });
+    if (vi < vals.length) this.io.warn(node.line, `💡 Line ${node.line}: printf got ${vals.length - vi} extra value${vals.length - vi === 1 ? '' : 's'} with no % placeholder, so ${vals.length - vi === 1 ? 'it was' : 'they were'} not printed.`);
+    this.io.out(out);
+    this.ex(node, node.line, () => `🖨️ <code>printf</code> ${filled.length ? 'filled in the blanks (' + filled.join(', ') + ') and ' : ''}printed ${show(out)}${out.endsWith('\n') ? '' : ' — no <code>\\n</code> at the end, so the next output continues on the same line'}.${filled.length ? ' Simple C shortcut: use <code>print</code> with <b>+</b> instead.' : ''}`);
+    return out.length;
+  }
+  *scanf(node, scope) {
+    if (!node.args.length) throw this.error(node.line, 'scanf needs a template', 'Like <code>scanf("%d", &amp;age);</code>', 'Or the easy way: <code>scan age</code>');
+    const fmtV = yield* this.eval(node.args[0], scope);
+    const specs = typeof fmtV === 'string' ? (fmtV.match(/%[0-9]*(?:hh|h|ll|l|L)?[diufFeEgGsc]/g) || []) : [];
+    const targets = node.args.slice(1);
+    if (specs.length !== targets.length) throw this.error(node.line, 'scanf placeholders and variables don\'t match', `The template has ${specs.length} placeholder${specs.length === 1 ? '' : 's'} but you gave ${targets.length} variable${targets.length === 1 ? '' : 's'}.`, 'Give one variable per placeholder, like <code>scanf("%d %d", &amp;a, &amp;b);</code>');
+    for (const t0 of targets) {
+      let t = t0;
+      if (t.type === 'AddrOf') t = t.target;
+      else if (t.type === 'Ident') { const r = scope.find(t.name); if (!r || r.type !== 'string') this.ex('amp' + node.line + t.name, node.line, () => `💡 Real C needs ${c('&' + t.name)} here (scanf wants the box's address). Simple C forgives you!`); }
+      if (t.type !== 'Ident' && t.type !== 'Index') throw this.error(node.line, 'scanf needs variables', `${c(src(t0))} isn't a variable, so scanf has nowhere to put what you type.`, 'Like <code>scanf("%d", &amp;age);</code>');
+      yield* this.readInto(t, null, scope, node);
+    }
+    return targets.length;
+  }
+
+  *builtin(name, args, node, scope) {
+    const need = (n, usage) => {
+      const ok = Array.isArray(n) ? args.length >= n[0] && args.length <= n[1] : args.length === n;
+      if (!ok) throw this.error(node.line, `Wrong number of inputs for ${name}()`, `${c(name + '()')} needs ${Array.isArray(n) ? n[0] + ' to ' + n[1] : n} input${n === 1 ? '' : 's'}, but you gave it ${args.length}.`, `Write it like ${c(usage)}.`);
+    };
+    const N = (i) => this.needNum(args[i], node.args[i], c(name + '()'));
+    switch (name) {
+      case 'random': {
+        need([0, 2], 'random(1, 10)');
+        if (args.length === 0) return Math.random();
+        let lo = 1, hi = N(0); if (args.length === 2) { lo = N(0); hi = N(1); }
+        if (lo > hi) [lo, hi] = [hi, lo];
+        const v = Math.floor(Math.random() * (Math.floor(hi) - Math.ceil(lo) + 1)) + Math.ceil(lo);
+        this.ex(node, node.line, () => `🎲 ${c(src(node))} picked a random whole number from ${lo} to ${hi}: <b>${v}</b>`);
+        return v;
+      }
+      case 'sqrt': need(1, 'sqrt(16)'); if (N(0) < 0) throw this.error(node.line, 'Square root of a negative', `${c(src(node))}: negative numbers don't have a normal square root.`, 'Use a number that is 0 or bigger.'); return Math.sqrt(N(0));
+      case 'pow': need(2, 'pow(2, 3)'); return Math.pow(N(0), N(1));
+      case 'abs': need(1, 'abs(-5)'); return Math.abs(N(0));
+      case 'round': need([1, 2], 'round(3.7)  or  round(3.14159, 2)'); if (args.length === 2) { const f = Math.pow(10, N(1)); return Math.round(N(0) * f) / f; } return Math.round(N(0));
+      case 'floor': need(1, 'floor(3.7)'); return Math.floor(N(0));
+      case 'ceil': need(1, 'ceil(3.2)'); return Math.ceil(N(0));
+      case 'min': case 'max': {
+        const list = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
+        if (!list.length) need([1, 99], name + '(a, b)');
+        if (!list.every(x => typeof x === 'number')) throw this.error(node.line, `${name}() needs numbers`, `${c(src(node))} has something that isn't a number.`, `Like ${c(name + '(3, 8)')}.`);
+        return Math[name](...list);
+      }
+      case 'toInt': case 'stoi': case 'int': need(1, 'toInt("42")'); return typeof args[0] === 'number' ? Math.trunc(args[0]) : typeof args[0] === 'boolean' ? +args[0] : this.toNum(args[0], true, node);
+      case 'toDouble': case 'stod': case 'double': case 'number': need(1, 'toDouble("2.5")'); return typeof args[0] === 'number' ? args[0] : typeof args[0] === 'boolean' ? +args[0] : this.toNum(args[0], false, node);
+      case 'toString': case 'to_string': case 'string': need(1, 'toString(5)'); return fmt(args[0]);
+      case 'length': case 'len': case 'size': need(1, 'length(x)'); if (typeof args[0] !== 'string' && !Array.isArray(args[0])) throw this.error(node.line, 'No length', `${c(src(node.args[0]))} is ${KIND_WORD[kind(args[0])]} — only text and lists have a length.`, ''); return args[0].length;
+      case 'typeOf': case 'typeof': need(1, 'typeOf(x)'); return { number: Number.isInteger(args[0]) ? 'int' : 'double', text: 'string', bool: 'bool', list: 'list', nothing: 'nothing' }[kind(args[0])];
+      case 'isNumber': need(1, 'isNumber(x)'); return typeof args[0] === 'number' || (typeof args[0] === 'string' && /^\s*[+-]?(\d+\.?\d*|\.\d+)\s*$/.test(args[0]));
+      case 'range': {
+        need([1, 3], 'range(1, 5)');
+        let a = 0, b, st = 1;
+        if (args.length === 1) b = N(0) - 1; else { a = N(0); b = N(1); if (args.length === 3) st = N(2); }
+        if (st === 0) throw this.error(node.line, 'Step can\'t be 0', 'A step of 0 never moves.', '');
+        const out = []; for (let v = a; st > 0 ? v <= b : v >= b; v += st) { out.push(v); if (out.length > 1e6) break; }
+        return out;
+      }
+      case 'ask': case 'input': {
+        need([0, 1], 'ask("What\'s your name?")');
+        const raw = yield { input: true, prompt: args.length ? fmt(args[0]) : null, name: 'answer', type: 'auto' };
+        const r = this.parseTyped(raw, 'auto');
+        this.ex(node, node.line, () => `⌨️ ${c('ask')} got ${show(r.value)} from you${typeof r.value === 'number' ? ' (it looked like a number, so I made it one)' : ''}.`);
+        return r.value;
+      }
+      case 'wait': case 'sleep': {
+        need(1, 'wait(500)  // milliseconds');
+        const ms = Math.min(10000, Math.max(0, N(0)));
+        this.ex(node, node.line, () => `⏳ Pausing for ${ms} ms (${ms / 1000} s).`);
+        yield { sleep: ms };
+        return null;
+      }
+      case 'exit': this.ex(node, node.line, () => `🏁 <code>exit()</code> → stopping the program right here.`); throw new ExitSig();
+      case 'system': case 'srand': case 'time': return 0; // classic leftovers — harmless
+      case 'rand': return Math.floor(Math.random() * 32768);
+      case 'puts': {
+        need(1, 'puts("Hello")'); const t = fmt(args[0]) + '\n'; this.io.out(t);
+        this.ex(node, node.line, () => `🖨️ <code>puts</code> printed ${show(t.slice(0, -1))} and a new line.`); return 0;
+      }
+      case 'putchar': need(1, "putchar('A')"); this.io.out(typeof args[0] === 'number' ? String.fromCharCode(args[0]) : fmt(args[0]).charAt(0)); return 0;
+      case 'strlen': need(1, 'strlen(name)'); if (typeof args[0] !== 'string') throw this.error(node.line, 'strlen needs text', `${c(src(node.args[0]))} is ${KIND_WORD[kind(args[0])]}, not text.`, 'Use it on text, like <code>strlen("hello")</code>.'); return args[0].length;
+      case 'strcmp': {
+        need(2, 'strcmp(a, b)'); const a = fmt(args[0]), b = fmt(args[1]); const r = a < b ? -1 : a > b ? 1 : 0;
+        this.ex(node, node.line, () => `🔤 ${c(src(node))} = ${r} — ${r === 0 ? '0 means the texts are the same' : r < 0 ? 'negative means the first comes earlier in the alphabet' : 'positive means the first comes later in the alphabet'}. (Simple C shortcut: ${c(src(node.args[0]) + ' == ' + src(node.args[1]))})`);
+        return r;
+      }
+      case 'atoi': need(1, 'atoi("42")'); return typeof args[0] === 'number' ? Math.trunc(args[0]) : this.toNum(args[0], true, node);
+      case 'atof': need(1, 'atof("2.5")'); return typeof args[0] === 'number' ? args[0] : this.toNum(args[0], false, node);
+      case 'toupper': case 'tolower': need(1, name + "('a')"); { const s = typeof args[0] === 'number' ? String.fromCharCode(args[0]) : fmt(args[0]); return name === 'toupper' ? s.toUpperCase() : s.toLowerCase(); }
+      case 'fabs': need(1, 'fabs(-2.5)'); return Math.abs(N(0));
+    }
+    const best = closest(name, [...this.funcs.keys(), ...BUILTIN_NAMES]);
+    throw this.error(node.line, `There's no function called "${name}"`, `You called ${c(name + '()')}, but no function with that name exists.`,
+      (best ? `Did you mean ${c(best + '()')}? ` : '') + `To make your own: ${c('func ' + name + '() { ... }')}`);
+  }
+}
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const ta = $('src'), hl = $('hl'), gutter = $('gutter'), conEl = $('console'), errband = $('errband');
+
+/* ---------- syntax highlighting ---------- */
+const HL_KW = new Set(['if','else','while','for','do','repeat','times','in','to','until','step','return','break','continue','func','function','fn','and','or','not','const','static','using','namespace','true','false','endl','main']);
+const HL_IO = new Set(['cout','cin','print','say','scan','ask','getline','printf','scanf','puts','putchar']);
+const HL_FN = new Set(BUILTIN_NAMES);
+function highlight(code) {
+  const re = /(\/\/[^\n]*)|(\/\*[\s\S]*?(?:\*\/|$))|("(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?)|(^[ \t]*#[^\n]*)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)/gm;
+  let out = '', last = 0, m;
+  while ((m = re.exec(code))) {
+    out += escapeHtml(code.slice(last, m.index));
+    const t = m[0]; let cls = null;
+    if (m[1] || m[2]) cls = 't-com';
+    else if (m[3]) cls = 't-str';
+    else if (m[4]) cls = 't-dir';
+    else if (m[5]) cls = 't-num';
+    else if (m[6]) cls = HL_IO.has(t) ? 't-io' : (t in TYPE_WORDS) ? 't-type' : HL_KW.has(t) ? 't-kw' : (HL_FN.has(t) && code[re.lastIndex] === '(') ? 't-fn' : null;
+    out += cls ? `<span class="${cls}">${escapeHtml(t)}</span>` : escapeHtml(t);
+    last = re.lastIndex;
+  }
+  out += escapeHtml(code.slice(last));
+  return out + '\n ';
+}
+let errLine = null;
+function refresh() {
+  hl.innerHTML = highlight(ta.value);
+  const n = ta.value.split('\n').length;
+  let g = '';
+  for (let i = 1; i <= n; i++) g += `<div${i === errLine ? ' class="err"' : ''}>${i}</div>`;
+  gutter.innerHTML = g;
+  syncScroll();
+  save();
+}
+function syncScroll() {
+  hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft;
+  gutter.style.transform = `translateY(${-ta.scrollTop}px)`;
+  if (errLine) { errband.style.display = 'block'; errband.style.top = (12 + (errLine - 1) * 21 - ta.scrollTop) + 'px'; }
+  else errband.style.display = 'none';
+}
+function setErrLine(l) { errLine = l; refresh(); }
+function updatePos() {
+  const before = ta.value.slice(0, ta.selectionStart).split('\n');
+  $('pos').textContent = `Ln ${before.length}, Col ${before[before.length - 1].length + 1}`;
+}
+function goToLine(l) {
+  const lines = ta.value.split('\n');
+  let pos = 0; for (let i = 0; i < l - 1 && i < lines.length; i++) pos += lines[i].length + 1;
+  ta.focus(); ta.setSelectionRange(pos, pos + (lines[l - 1] || '').length);
+  ta.scrollTop = Math.max(0, (l - 4) * 21);
+  updatePos(); syncScroll();
+}
+function insertText(t) {
+  ta.focus();
+  if (!document.execCommand('insertText', false, t)) ta.setRangeText(t, ta.selectionStart, ta.selectionEnd, 'end');
+  refresh();
+}
+ta.addEventListener('input', () => { if (errLine) errLine = null; refresh(); updatePos(); dirty = true; });
+ta.addEventListener('scroll', syncScroll);
+ta.addEventListener('click', updatePos);
+ta.addEventListener('keyup', updatePos);
+ta.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); run(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); return; }
+  if (e.key === 'Tab') { e.preventDefault(); insertText('    '); return; }
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    const before = ta.value.slice(0, ta.selectionStart);
+    const curLine = before.slice(before.lastIndexOf('\n') + 1);
+    let indent = /^[ \t]*/.exec(curLine)[0];
+    if (/\{\s*$/.test(curLine)) indent += '    ';
+    insertText('\n' + indent);
+    return;
+  }
+  if (e.key === '}' ) {
+    const before = ta.value.slice(0, ta.selectionStart);
+    const curLine = before.slice(before.lastIndexOf('\n') + 1);
+    if (/^ {4,}$/.test(curLine)) { e.preventDefault(); ta.setSelectionRange(ta.selectionStart - 4, ta.selectionStart); insertText('}'); }
+  }
+});
+
+/* ---------- console ---------- */
+const con = {
+  buf: '', outEl: null, chars: 0, capped: false,
+  clear() { conEl.innerHTML = ''; this.buf = ''; this.outEl = null; this.chars = 0; this.capped = false; },
+  scroll() { conEl.scrollTop = conEl.scrollHeight; },
+  flush() {
+    if (!this.buf) return;
+    if (!this.outEl) { this.outEl = document.createElement('div'); this.outEl.className = 'c-out'; this.outEl.appendChild(document.createTextNode('')); conEl.appendChild(this.outEl); }
+    this.outEl.firstChild.data += this.buf; this.buf = ''; this.scroll();
+  },
+  out(t) {
+    if (this.capped) return;
+    this.chars += t.length;
+    if (this.chars > 300000) { this.capped = true; this.flush(); this.warn(null, '⚠️ That\'s a LOT of output — I stopped showing more so your browser doesn\'t freeze.'); return; }
+    this.buf += t;
+    if (this.buf.length > 4000) this.flush();
+  },
+  block(cls, html) {
+    this.flush();
+    const d = document.createElement('div'); d.className = cls; d.innerHTML = html;
+    conEl.appendChild(d); this.outEl = null; this.scroll(); return d;
+  },
+  sys(t, done) { this.block('c-sys' + (done ? ' done' : ''), escapeHtml(t)); },
+  explain(line, html, quiet) {
+    html = forLang(html);
+    const d = this.block('c-ex' + (quiet ? ' quiet' : ''), (line ? `<button class="lnk" data-line="${line}" title="Jump to line ${line}">L${line}</button>` : '') + `<span>${html}</span>`);
+  },
+  warn(line, t) { this.block('c-warn', escapeHtml(t)); },
+  error(e, srcText) {
+    if (!(e instanceof SimplyError)) {
+      if (e instanceof RangeError) e = new SimplyError(null, 'Too many calls inside calls', 'Your functions called each other so deeply that the computer ran out of room.', 'Make sure a function that calls itself has a stopping case.');
+      else e = new SimplyError(null, 'Oops — the simulator itself tripped', 'Something went wrong inside the simulator: ' + escapeHtml(e.message), 'Try simplifying the line, and please report this bug.');
+    }
+    e = Object.assign(Object.create(SimplyError.prototype), e, { title: forLang(e.title).replace(/<!-- -->/g, ''), what: forLang(e.what), fix: e.fix && forLang(e.fix) });
+    let snippet = '';
+    if (e.line) {
+      const lineText = srcText.split('\n')[e.line - 1] ?? '';
+      snippet = `<pre>${escapeHtml(String(e.line).padStart(3) + ' | ' + lineText)}${e.col ? '\n' + ' '.repeat(6 + e.col - 1) + '<span class="caret">^ here</span>' : ''}</pre>`;
+      setErrLine(e.line);
+    }
+    this.block('c-err', `<h3>❌ ${escapeHtml(e.title)}</h3>${e.line ? `<div class="where">On line ${e.line} · <button class="lnk" data-line="${e.line}">show me</button></div>` : ''}${snippet}<div class="lab">What happened</div><p>${e.what}</p>${e.fix ? `<div class="lab">How to fix it</div><p>${e.fix}</p>` : ''}`);
+  },
+  ask(req, ctl) {
+    this.flush();
+    return new Promise(resolve => {
+      const d = document.createElement('div'); d.className = 'c-in';
+      const label = document.createElement('label');
+      label.textContent = req.prompt != null ? req.prompt : `⌨️ Type a value for ${req.name}${req.type !== 'auto' ? ' (' + TYPE_DESC[req.type] + ')' : ''}:`;
+      const inp = document.createElement('input'); inp.placeholder = 'type here, then press Enter';
+      d.append(label, inp); conEl.appendChild(d); this.outEl = null; this.scroll();
+      setTimeout(() => inp.focus(), 0);
+      const finish = (val) => {
+        const echo = document.createElement('div'); echo.className = 'c-out';
+        echo.innerHTML = (req.prompt != null ? escapeHtml(req.prompt) : '') + `<span class="c-echo">${escapeHtml(val ?? '')}</span>`;
+        d.replaceWith(echo); this.outEl = null; ctl.cancelInput = null; resolve(val);
+      };
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finish(inp.value); } });
+      ctl.cancelInput = () => finish(null);
+    });
+  },
+};
+conEl.addEventListener('click', e => { const b = e.target.closest('.lnk'); if (b) goToLine(+b.dataset.line); });
+
+/* ---------- runner ---------- */
+let running = null;
+const mc = new MessageChannel(); const mcQueue = [];
+mc.port1.onmessage = () => { const r = mcQueue.shift(); if (r) r(); };
+function yieldToBrowser() { return new Promise(res => { mcQueue.push(res); mc.port2.postMessage(0); }); }
+async function run() {
+  if (running) { running.stop(); return; }
+  showTab('console');
+  errLine = null; refresh();
+  con.clear();
+  const code = ta.value;
+  const fname = $('fname').value || 'main.scpp';
+  con.sys(`▶ Running ${fname}${$('explain').checked ? '  ·  explain mode ON' : ''}`);
+  let ast;
+  try { ast = new Parser(lex(code), LANG).parseProgram(); }
+  catch (e) { con.error(e, code); con.sys('✖ Your program didn\'t start — fix the problem above and press Run again.'); return; }
+  if (!ast.length) { con.warn(null, '🤔 Your file is empty! Try typing:  ' + L().hello); return; }
+  const io = { explainOn: $('explain').checked, out: t => con.out(t), explain: (l, m, q) => con.explain(l, m, q), warn: (l, t) => con.warn(l, t) };
+  const interp = new Interp(ast, io);
+  const gen = interp.run();
+  const ctl = { stopped: false, cancelInput: null, timer: null, wake: null,
+    stop() { this.stopped = true; if (this.cancelInput) this.cancelInput(); if (this.wake) this.wake(); } };
+  running = ctl; setRunUI(true);
+  const t0 = performance.now(); let send, waited = 0;
+  try {
+    for (;;) {
+      if (ctl.stopped) { con.flush(); con.warn(null, '⏹ You stopped the program.'); break; }
+      const r = gen.next(send); send = undefined;
+      if (r.done) { con.flush(); con.sys(`✔ Program finished in ${Math.max(1, Math.round(performance.now() - t0 - waited))} ms (${interp.steps.toLocaleString()} step${interp.steps === 1 ? '' : 's'}).`, true); break; }
+      const req = r.value;
+      if (req.tick) { con.flush(); await yieldToBrowser(); }
+      else if (req.input) { const w0 = performance.now(); send = await con.ask(req, ctl); waited += performance.now() - w0; if (send === null) continue; }
+      else if (req.sleep != null) { con.flush(); const w0 = performance.now(); await new Promise(res => { ctl.wake = res; setTimeout(res, req.sleep); }); ctl.wake = null; waited += performance.now() - w0; }
+    }
+  } catch (e) {
+    con.flush(); con.error(e, code); con.sys('✖ Program stopped because of the problem above.');
+  } finally { running = null; setRunUI(false); }
+}
+function setRunUI(on) {
+  const b = $('runBtn');
+  b.textContent = on ? '■ Stop' : '▶ Run';
+  b.classList.toggle('stop', on);
+}
+
+/* ---------- tabs ---------- */
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
+  conEl.style.display = name === 'console' ? 'block' : 'none';
+  $('sheet').style.display = name === 'sheet' ? 'block' : 'none';
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+$('clearBtn').addEventListener('click', () => { con.clear(); errLine = null; refresh(); });
+$('runBtn').addEventListener('click', run);
+
+/* ---------- files ---------- */
+let dirty = false;
+function fixName(n) { n = (n || 'main').trim().replace(/[\\/:*?"<>|]/g, '_').replace(/\.(scpp|sc|cpp|c|txt)$/i, ''); return n + L().ext; }
+function saveFile() {
+  const name = fixName($('fname').value); $('fname').value = name;
+  const blob = new Blob([ta.value], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  dirty = false;
+}
+function loadText(name, text) { ta.value = text; $('fname').value = fixName(name); errLine = null; refresh(); ta.scrollTop = 0; syncScroll(); dirty = false; }
+function openFile(file) {
+  if (!file) return;
+  const want = /\.(sc|c)$/i.test(file.name) ? 'c' : /\.(scpp|cpp)$/i.test(file.name) ? 'cpp' : LANG;
+  const r = new FileReader();
+  r.onload = () => { if (want !== LANG) setLang(want, true); loadText(file.name, String(r.result)); };
+  r.readAsText(file);
+}
+$('saveBtn').addEventListener('click', saveFile);
+$('openBtn').addEventListener('click', () => $('fileIn').click());
+$('fileIn').addEventListener('change', e => { openFile(e.target.files[0]); e.target.value = ''; });
+$('newBtn').addEventListener('click', () => { if (dirty && !confirm('Start a new file? Unsaved changes will be lost.')) return; loadText('main', `// My new ${L().name} program\n\n${L().hello}\n`); ta.focus(); });
+$('fname').addEventListener('change', () => { $('fname').value = fixName($('fname').value); save(); });
+const box = $('editorBox');
+['dragenter', 'dragover'].forEach(ev => box.addEventListener(ev, e => { e.preventDefault(); box.classList.add('dragging'); }));
+['dragleave', 'drop'].forEach(ev => box.addEventListener(ev, e => { e.preventDefault(); if (ev === 'drop' || e.target === box.querySelector('.drop')) box.classList.remove('dragging'); }));
+box.addEventListener('drop', e => openFile(e.dataTransfer.files[0]));
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && document.activeElement !== ta) { e.preventDefault(); run(); }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && document.activeElement !== ta) { e.preventDefault(); saveFile(); }
+});
+function save() { try { localStorage.setItem(L().key + '.code', ta.value); localStorage.setItem(L().key + '.name', $('fname').value); localStorage.setItem('simplycpp.explain', $('explain').checked ? '1' : '0'); localStorage.setItem('simplycpp.lang', LANG); } catch (e) {} }
+$('explain').addEventListener('change', save);
+
+/* ---------- examples ---------- */
+const EXAMPLES = {
+'👋 Hello, Simply C++': `// Welcome to Simply C++!  Press ▶ Run (or Ctrl/⌘ + Enter).
+// No #include, no main(), no semicolons needed.
+
+cout "Hello, world!"
+cout "hi" + "hi"              // glue text together with +
+cout "Ha" * 3                 // repeat text with *
+
+string name = "Sam"
+int age = 12
+cout "My name is " + name + " and I am " + age + " years old."
+cout "Next year I'll be", age + 1     // commas add spaces
+`,
+'📦 Boxes (variables)': `// A variable is a labelled box that holds one thing.
+int lives = 3              // whole numbers
+double price = 4.99        // decimals
+string hero = "Pixel"      // text
+bool hasKey = false        // true or false
+char grade = 'A'           // one letter
+auto mystery = 42          // auto = "you figure it out"
+
+cout hero + " has " + lives + " lives"
+lives = lives - 1          // change what's in the box
+lives++                    // add 1
+cout "Now: " + lives + " lives"
+
+hasKey = true
+cout "Has key? " + hasKey
+cout "Price with tax: " + round(price * 1.08, 2)
+
+int whole = 7.9            // an int chops off decimals
+cout whole
+`,
+'➗ Math': `cout 7 / 2            // 3.5 (real C++ would say 3!)
+cout 7 % 2            // remainder: 1
+cout floor(7 / 2)     // chop: 3
+cout pow(2, 10)       // 2 to the 10th power
+cout sqrt(144)
+cout abs(-8)
+cout round(3.14159, 2)
+cout min(4, 9), max(4, 9)
+
+int dice = random(1, 6)
+cout "You rolled a " + dice + "!"
+`,
+'🤔 If / else': `int temp = 28
+
+if temp > 30 {
+    cout "It's HOT 🔥"
+} else if temp > 20 {
+    cout "Nice and warm ☀️"
+} else {
+    cout "Bring a jacket 🧥"
+}
+
+string pet = "cat"
+if pet == "cat" and temp > 25 {
+    cout "The cat is napping in the sun."
+}
+if not (pet == "dog") {
+    cout "No dog here."
+}
+`,
+'🔁 Loops': `// 1) Do something N times
+repeat 3 {
+    cout "Hip hip hooray!"
+}
+
+// 2) Count with a variable
+for i in 1 to 5 {
+    cout "Counting: " + i
+}
+
+// 3) Count by 2s, backwards
+for n in 10 to 0 step -2 {
+    cout n
+}
+
+// 4) While a condition is true
+int fuel = 3
+while fuel > 0 {
+    cout "Vroom! fuel = " + fuel
+    fuel--
+}
+cout "Out of fuel."
+`,
+'📋 Lists': `list snacks = ["chips", "apple", "cookie"]
+snacks.add("pretzel")
+cout snacks
+cout "First: " + snacks[0]
+cout "Last: " + snacks[-1]
+cout "How many: " + snacks.size()
+
+for s in snacks {
+    cout "I like " + s
+}
+
+list scores = [72, 95, 88, 61]
+scores.sort()
+cout scores
+cout "Best: " + scores.max() + "  Average: " + scores.average()
+cout "Has 95? " + scores.contains(95)
+cout scores.join(" | ")
+`,
+'🔤 Text tricks': `string msg = "  Simply C++ is fun  "
+msg = msg.trim()
+cout msg.upper()
+cout msg.lower()
+cout "Length: " + msg.length()
+cout msg.replace("fun", "awesome")
+cout msg.reverse()
+cout "Contains C++? " + msg.contains("C++")
+
+list words = msg.split(" ")
+cout words
+cout "First letter: " + msg[0]
+cout "-" * 20
+`,
+'🧩 Functions': `// Make your own commands with func
+func greet(name) {
+    cout "Hello, " + name + "!"
+}
+
+func add(a, b) {
+    return a + b
+}
+
+// You can still use real C++ style with types:
+int square(int n) {
+    return n * n
+}
+
+greet("Ava")
+greet("Leo")
+cout add(2, 3)
+cout add("Simply ", "C++")
+cout "5 squared is " + square(5)
+`,
+'🎲 Guess the number (input)': `// The console will ask you to type!
+int secret = random(1, 20)
+int tries = 0
+cout "I'm thinking of a number from 1 to 20..."
+
+int guess = 0
+while guess != secret {
+    cin "Your guess: " guess
+    tries++
+    if guess < secret {
+        cout "Too low!"
+    } else if guess > secret {
+        cout "Too high!"
+    }
+}
+cout "🎉 You got it in " + tries + " tries!"
+`,
+'🏛️ Classic C++ (still works)': `#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+int square(int n) {
+    return n * n;
+}
+
+int main() {
+    string name = "World";
+    cout << "Hello, " << name << "!" << endl;
+
+    vector<int> nums = {1, 2, 3};
+    nums.push_back(4);
+    for (int i = 0; i < nums.size(); i++) {
+        cout << nums[i] << " squared is " << square(nums[i]) << endl;
+    }
+    return 0;
+}
+`,
+'💥 Oops! (see an error explained)': `// This program has a mistake on purpose.
+// Press Run and read how the console explains it.
+
+string name = "Alex"
+int age = 13
+cout "Hi " + nmae
+`,
+};
+const C_EXAMPLES = {
+'👋 Hello, Simple C': `// Welcome to Simple C!  Press ▶ Run (or Ctrl/⌘ + Enter).
+// No #include, no main(), no semicolons needed.
+
+print "Hello, world!"
+print "hi" + "hi"             // glue text together with +
+print "Ha" * 3                // repeat text with *
+
+string name = "Sam"           // real text strings (C doesn't have these!)
+int age = 12
+print "My name is " + name + " and I am " + age + " years old."
+
+// Real C's printf works too:
+printf("Next year I'll be %d\\n", age + 1);
+`,
+'📦 Boxes (variables)': `int lives = 3              // whole numbers
+double price = 4.99        // decimals
+char grade = 'A'           // one letter
+string hero = "Pixel"      // text (Simple C bonus!)
+bool hasKey = false        // true or false
+
+print hero + " has " + lives + " lives"
+lives = lives - 1
+lives++
+print "Now: " + lives + " lives"
+
+printf("Price: $%.2f  Grade: %c\\n", price, grade);
+int whole = 7.9            // an int chops off decimals
+print whole
+`,
+'🖨️ printf & scanf': `// printf fills in blanks: %d = whole number, %f = decimal,
+// %s = text, %c = one letter, \\n = new line
+int apples = 5
+double cost = 1.25
+printf("%d apples cost $%.2f\\n", apples, apples * cost);
+printf("%s scored %d%%\\n", "Ava", 97);
+printf("[%5d]  [%-5d]  [%05d]\\n", 42, 42, 42);
+
+// scanf reads what you type. The & means "put it in this box".
+int age = 0
+printf("How old are you? ");
+scanf("%d", &age);
+printf("In 10 years you'll be %d!\\n", age + 10);
+`,
+'🔁 Loops': `// 1) Do something N times
+repeat 3 {
+    print "Hip hip hooray!"
+}
+
+// 2) Count with a variable
+for i in 1 to 5 {
+    print "Counting: " + i
+}
+
+// 3) Classic C for loop (still works)
+for (int n = 10; n >= 0; n -= 2) {
+    printf("%d ", n);
+}
+print ""
+
+// 4) While a condition is true
+int fuel = 3
+while fuel > 0 {
+    print "Vroom! fuel = " + fuel
+    fuel--
+}
+`,
+'📋 Arrays & lists': `int scores[5] = {72, 95, 88, 61, 80}
+print scores
+print "First: " + scores[0]
+print "Last: " + scores[-1]          // count from the end!
+print "How many: " + scores.size()   // no sizeof tricks needed
+
+int total = 0
+for (int i = 0; i < scores.size(); i++) {
+    total += scores[i]
+}
+printf("Average: %.1f\\n", total / 5.0);
+
+// A list can grow (no malloc!)
+list snacks = ["chips", "apple"]
+snacks.add("cookie")
+for s in snacks {
+    print "I like " + s
+}
+`,
+'🔤 Text (strings)': `// Real C uses char arrays. Simple C understands both!
+char first[20] = "Ada"
+string last = "Lovelace"
+
+string full = first + " " + last
+print full
+print "Length: " + strlen(full)
+print full.upper()
+
+if first == "Ada" {
+    print "Simple C can compare text with =="
+}
+if strcmp(first, "Ada") == 0 {
+    print "...and real C's strcmp works too"
+}
+
+strcat(first, "!")
+print first
+`,
+'🧩 Functions': `func greet(name) {
+    print "Hello, " + name + "!"
+}
+
+// Real C style with types works too:
+int square(int n) {
+    return n * n;
+}
+
+void countdown(int from) {
+    for i in from to 1 {
+        printf("%d... ", i);
+    }
+    print "Liftoff! 🚀"
+}
+
+greet("Ava")
+printf("5 squared is %d\\n", square(5));
+countdown(3)
+`,
+'🎲 Guess the number (input)': `int secret = random(1, 20)
+int tries = 0
+print "I'm thinking of a number from 1 to 20..."
+
+int guess = 0
+while guess != secret {
+    scan "Your guess: " guess
+    tries++
+    if guess < secret {
+        print "Too low!"
+    } else if guess > secret {
+        print "Too high!"
+    }
+}
+printf("🎉 You got it in %d tries!\\n", tries);
+`,
+'🏛️ Classic C (still works)': `#include <stdio.h>
+#include <string.h>
+
+int square(int n) {
+    return n * n;
+}
+
+int main(void) {
+    char name[50] = "World";
+    printf("Hello, %s!\\n", name);
+
+    int nums[4] = {1, 2, 3, 4};
+    for (int i = 0; i < 4; i++) {
+        printf("%d squared is %d\\n", nums[i], square(nums[i]));
+    }
+    return 0;
+}
+`,
+'💥 Oops! (see an error explained)': `// This program has mistakes on purpose.
+// Press Run and read how the console explains it.
+
+int scores[3] = {90, 85, 77}
+printf("%d\\n", scores[3]);   // real C would print garbage here!
+`,
+};
+const sel = $('examples');
+function fillExamples() { sel.innerHTML = '<option value="">📚 Examples…</option>' + Object.keys(L().examples).map(k => `<option>${escapeHtml(k)}</option>`).join(''); }
+sel.addEventListener('change', () => {
+  const k = sel.value; sel.value = '';
+  if (!k) return;
+  const ex = L().examples;
+  if (dirty && !Object.values(ex).includes(ta.value) && !confirm('Load this example? Your current code will be replaced (save it first if you want to keep it).')) return;
+  const fn = k.replace(/[^\w\s]/g, '').trim().toLowerCase().replace(/\s+/g, '-');
+  loadText(fn, ex[k]);
+  con.clear(); conEl.innerHTML = `<div class="empty">Loaded <b>${escapeHtml(k)}</b>. Press <b>▶ Run</b>!</div>`;
+});
+
+/* ---------- start ---------- */
+/* ---------- languages ---------- */
+const LANGS = {
+  cpp: { name: 'Simply C++', short: 'C++', ext: '.scpp', key: 'simplycpp', logo: 'logo-cpp.png', hello: 'cout "Hello!"', hash: '#cpp',
+         tagline: 'C++ for dummies — friendlier rules, and the console explains every step.', examples: EXAMPLES },
+  c:   { name: 'Simple C', short: 'C', ext: '.sc', key: 'simplec', logo: 'logo-c.png', hello: 'print "Hello!"', hash: '#c',
+         tagline: 'C for dummies — real text strings, no crashes, and the console explains every step.', examples: C_EXAMPLES },
+};
+let LANG = 'cpp';
+const L = () => LANGS[LANG];
+function forLang(html) {
+  if (LANG !== 'c' || !html) return html;
+  return String(html).replace(/Simply C\+\+/g, 'Simple C').replace(/\bcout\b/g, 'print').replace(/\bcin\b/g, 'scan')
+    .replace(/C\+\+/g, 'C');
+}
+function setLang(lang, keepCode) {
+  if (!LANGS[lang]) lang = 'cpp';
+  if (lang === LANG && document.body.dataset.lang) return;
+  if (running) running.stop();
+  if (document.body.dataset.lang) save();
+  LANG = lang; document.body.dataset.lang = lang;
+  const l = L();
+  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  $('title').textContent = '· ' + l.name; $('tagline').textContent = l.tagline;
+  $('extChip').textContent = 'files: ' + l.ext;
+  $('saveBtn').textContent = 'Save ' + l.ext;
+  $('ver').textContent = l.name + ' 1.1';
+  ta.setAttribute('aria-label', l.name + ' code');
+  document.title = 'Simple Code · ' + l.name;
+  document.querySelectorAll('[data-sheet]').forEach(d => d.hidden = d.dataset.sheet !== lang);
+  if (location.hash !== l.hash) history.replaceState(null, '', l.hash);
+  fillExamples();
+  con.clear(); conEl.innerHTML = `<div class="empty">You're writing <b>${l.name}</b>. Press <b>▶ Run</b> to start your program.<br>With <b>Explain mode</b> on, I'll tell you what every line did — like a tutor sitting next to you.</div>`;
+  if (keepCode) return;
+  let code = null, name = null;
+  try { code = localStorage.getItem(l.key + '.code'); name = localStorage.getItem(l.key + '.name'); } catch (e) {}
+  loadText(name || 'main', code != null && code.trim() ? code : Object.values(l.examples)[0]);
+}
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+window.addEventListener('hashchange', () => setLang(location.hash === '#c' ? 'c' : 'cpp'));
+
+(function init() {
+  let ex = null, saved = null;
+  try { ex = localStorage.getItem('simplycpp.explain'); saved = localStorage.getItem('simplycpp.lang'); } catch (e) {}
+  if (ex === '0') $('explain').checked = false;
+  setLang(location.hash === '#c' ? 'c' : location.hash === '#cpp' ? 'cpp' : (saved || 'cpp'));
+})();
+</script>
+</body>
+</html>
