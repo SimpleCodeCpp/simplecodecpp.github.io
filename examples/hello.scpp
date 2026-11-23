@@ -1,0 +1,8 @@
+// hello.scpp — open me in Simply C++ Studio
+cout "Hello, world!"
+cout "hi" + "hi"
+cout "Ha" * 3
+
+string name = "Sam"
+int age = 12
+cout "My name is " + name + " and I am " + age + " years old."
