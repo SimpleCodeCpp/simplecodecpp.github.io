@@ -1,0 +1,16 @@
+// guess.scpp — a number guessing game
+int secret = random(1, 20)
+int tries = 0
+cout "I'm thinking of a number from 1 to 20..."
+
+int guess = 0
+while guess != secret {
+    cin "Your guess: " guess
+    tries++
+    if guess < secret {
+        cout "Too low!"
+    } else if guess > secret {
+        cout "Too high!"
+    }
+}
+cout "You got it in " + tries + " tries!"
