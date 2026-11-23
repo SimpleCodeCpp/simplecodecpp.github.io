@@ -1,0 +1,13 @@
+// shopping.scpp — lists and functions
+func total(prices) {
+    return round(prices.sum(), 2)
+}
+
+list items = ["milk", "bread", "eggs"]
+list prices = [2.49, 3.10, 4.25]
+
+for i in 0 until items.size() {
+    cout items[i] + ": $" + prices[i]
+}
+cout "-" * 20
+cout "Total: $" + total(prices)
