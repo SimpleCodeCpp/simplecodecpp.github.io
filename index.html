@@ -33,12 +33,32 @@ header .brandlogo{width:50px;height:50px;flex:none;background:#fff;border-radius
 .brand p{margin:3px 0 0;color:var(--muted);font-size:13px;font-weight:600}
 .chip{font-family:var(--mono);font-size:11px;border:1px solid var(--line2);border-radius:999px;padding:3px 9px;color:var(--muted);white-space:nowrap}
 header .spacer{flex:1}
+.picker{position:relative}
+.langbtn{display:inline-flex;align-items:center;gap:8px;background:#0a0a0c;border:1px solid var(--line2);border-radius:10px;padding:6px 12px 6px 8px;color:var(--text);font-weight:900;font-size:14px;cursor:pointer}
+.langbtn:hover{border-color:#55555f}
+.langbtn img{width:26px;height:26px;object-fit:contain}
+.langbtn .caret{color:var(--muted);font-size:11px}
+.langmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:50;background:#141417;border:1px solid var(--line2);border-radius:14px;padding:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:min(420px,calc(100vw - 32px));box-shadow:0 18px 50px rgba(0,0,0,.6)}
+.langmenu[hidden]{display:none}
+.langmenu button{display:flex;flex-direction:column;align-items:center;gap:6px;background:#1b1b20;border:1px solid transparent;border-radius:10px;padding:10px 6px;color:var(--text);font-weight:800;font-size:12.5px;cursor:pointer;text-align:center}
+.langmenu button img{width:44px;height:44px;object-fit:contain}
+.langmenu button:hover{border-color:#55555f;background:#222228}
+.langmenu button.on{border-color:#fff;background:#26262c}
+.langmenu .ext{font-family:var(--mono);font-size:10.5px;color:var(--dim);font-weight:600}
+.c-preview{margin:6px 0 10px}
+.c-preview iframe{width:100%;height:360px;border:0;border-radius:10px;background:#fff;display:block;resize:vertical}
+.c-preview .bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-family:var(--ui);font-weight:800;font-size:12.5px;color:var(--muted)}
+.c-preview .bar .grow{flex:1}
+details.c-real{margin:8px 0;font-family:var(--ui)}
+details.c-real summary{cursor:pointer;font-weight:800;color:var(--k-io);font-size:13.5px;margin-bottom:6px}
+details.c-real pre{background:#000;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:var(--mono);font-size:12.5px;color:#e8e8ee;overflow:auto;max-height:340px;white-space:pre}
+
 .seg{display:inline-flex;background:#0a0a0c;border:1px solid var(--line2);border-radius:10px;padding:3px;gap:2px}
 .seg button img{width:18px;height:auto;vertical-align:-4px;margin-right:6px}
 .seg button{border:0;background:none;color:var(--muted);font-weight:900;font-size:13px;padding:6px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
 .seg button.on{background:#fff;color:#000}
 .seg button:not(.on):hover{color:var(--text);background:#1d1d22}
-@media (max-width:560px){ header{flex-wrap:wrap} .chip{display:none} }
+@media (max-width:560px){ header{flex-wrap:wrap} .chip{display:none} .langmenu{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
 /* toolbar */
 .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
@@ -163,9 +183,9 @@ main{flex:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);min
     <p id="tagline">C++ for dummies — friendlier rules, and the console explains every step.</p>
   </div>
   <div class="spacer"></div>
-  <div class="seg" role="tablist" aria-label="Language">
-    <button data-lang="cpp" class="on"><img src="logo-cpp.png" alt="">Simply C++</button>
-    <button data-lang="c"><img src="logo-c.png" alt="">Simple C</button>
+  <div class="picker">
+    <button class="langbtn" id="langBtn" aria-haspopup="true" aria-expanded="false" title="Pick a language"><img id="langLogo" alt=""><span id="langName">Simply C++</span><span class="caret">▾</span></button>
+    <div class="langmenu" id="langMenu" hidden></div>
   </div>
   <span class="chip" id="extChip">files: .scpp</span>
 </header>
@@ -297,81 +317,176 @@ class SimplyError extends Error {
   }
 }
 
-const TYPE_WORDS = { int:'int', long:'int', short:'int', unsigned:'int', size_t:'int', double:'double', float:'double',
-  string:'string', bool:'bool', char:'char', auto:'auto', var:'auto', let:'auto', list:'list', vector:'list', array:'list', void:'void' };
+const TYPE_WORDS = { int:'int', long:'int', short:'int', unsigned:'int', size_t:'int', double:'double', float:'double', decimal:'double',
+  string:'string', bool:'bool', char:'char', auto:'auto', var:'auto', let:'auto', list:'list', vector:'list', array:'list', void:'void',
+  Int:'int', Double:'double', Float:'double', String:'string', Bool:'bool', Character:'char', List:'list', Random:'auto', boolean:'bool' };
 const TYPE_DESC = { int:'int (whole numbers)', double:'double (decimal numbers)', string:'string (text)', bool:'bool (true/false)',
   char:'char (one letter)', list:'list', auto:'auto', void:'void' };
-const RESERVED = new Set(['if','else','while','for','do','repeat','return','break','continue','func','function','fn','cout','cin','print','say','scan','using','in','to','until','step','times']);
+const RESERVED = new Set(['if','else','elif','while','for','foreach','do','repeat','return','break','continue','func','function','fn','def','cout','cin','print','say','scan','using','in','to','until','step','times','pass']);
 const BUILTIN_NAMES = ['random','sqrt','pow','abs','round','floor','ceil','min','max','toInt','toDouble','toString','stoi','stod','to_string',
   'length','len','size','typeOf','ask','input','wait','sleep','range','exit','isNumber','getline','int','double','string','number',
   'printf','scanf','puts','putchar','strlen','strcmp','strcpy','strcat','atoi','atof','toupper','tolower','fabs','rand'];
 
 /* ---------------- Lexer ---------------- */
-const OPS = ['<<=','>>=','==','!=','<=','>=','&&','||','++','--','+=','-=','*=','/=','%=','<<','>>','::','->','..',
-  '+','-','*','/','%','=','<','>','!','(',')','{','}','[',']',',',';','.',':','?','&','|'];
+const OPS = ['===','!==','<<=','>>=','..<','...','**','==','!=','<=','>=','&&','||','++','--','+=','-=','*=','/=','%=','<<','>>','::','->','=>','??','..',
+  '+','-','*','/','%','=','<','>','!','(',')','{','}','[',']',',',';','.',':','?','&','|','^','~'];
+const PY_BLOCK_WORDS = new Set(['if','elif','else','for','while','def','class','try','except','finally','with','repeat']);
 
-function lex(src) {
-  const toks = []; let i = 0, line = 1, lineStartIdx = 0, atLineStart = true;
+function lex(src, lang = 'cpp', baseLine = 1) {
+  const py = lang === 'py';
+  const toks = []; let i = 0, line = baseLine, lineStartIdx = 0, atLineStart = true;
   const stack = [];
+  const indents = [0]; let pendingBlock = null, inlineBlocks = 0, firstWord = null;
   const push = (t, v, extra) => { const tk = { t, v, line, col: i - lineStartIdx + 1, ...extra }; toks.push(tk); return tk; };
+  const inParens = () => { const top = stack[stack.length - 1]; return top === '(' || top === '['; };
+  const E = (title, what, fix, col) => new SimplyError(line, title, what, fix, col);
+  const closeInline = () => { while (inlineBlocks > 0) { push('op', '}'); inlineBlocks--; } };
   while (i < src.length) {
     const ch = src[i];
     if (ch === '\n') {
-      const top = stack[stack.length - 1];
-      if (!(top === '(' || top === '[') && toks.length && toks[toks.length - 1].t !== 'nl') push('nl', '\n');
-      i++; line++; lineStartIdx = i; atLineStart = true; continue;
+      if (!inParens()) {
+        if (py) closeInline();
+        if (toks.length && toks[toks.length - 1].t !== 'nl') push('nl', '\n');
+      }
+      i++; line++; lineStartIdx = i; atLineStart = true; firstWord = null; continue;
+    }
+    // Python: indentation decides the blocks
+    if (py && atLineStart && !inParens()) {
+      let j = i, ind = 0;
+      while (src[j] === ' ' || src[j] === '\t') { ind += src[j] === '\t' ? 4 : 1; j++; }
+      const blank = j >= src.length || src[j] === '\n' || src[j] === '\r' || src[j] === '#';
+      if (!blank) {
+        const top = indents[indents.length - 1];
+        if (pendingBlock) {
+          if (ind <= top) throw new SimplyError(line, 'Missing indented block', `Line ${pendingBlock} ends with <code>:</code>, so the lines that belong to it must be pushed in (indented) more than it.`, 'Add 4 spaces at the start of the lines that belong inside, like:<br><code>if x &gt; 5:<br>&nbsp;&nbsp;&nbsp;&nbsp;print("big")</code>', 1);
+          indents.push(ind); pendingBlock = null;
+        } else if (ind > top) {
+          throw new SimplyError(line, 'Unexpected indent', 'This line is pushed in (indented) more than the line above, but the line above doesn\'t end with <code>:</code>. In Python, spaces at the start of a line matter!', 'Remove the extra spaces at the start of this line, or end the line above with <code>:</code> if it starts a block.', 1);
+        }
+        while (ind < indents[indents.length - 1]) {
+          indents.pop();
+          push('op', '}'); push('nl', '\n');
+          if (ind > indents[indents.length - 1]) throw new SimplyError(line, 'Indent doesn\'t line up', 'This line\'s spaces don\'t match any block above it.', 'Line it up exactly with the block it belongs to (use 4 spaces per level).', 1);
+        }
+        i = j; atLineStart = false;
+        continue;
+      }
     }
     if (ch === ' ' || ch === '\t' || ch === '\r') { i++; continue; }
-    if (ch === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') i++; continue; }
-    if (ch === '/' && src[i + 1] === '*') {
+    if (py && ch === '#') { while (i < src.length && src[i] !== '\n') i++; continue; }
+    if (!py && ch === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') i++; continue; }
+    if (!py && ch === '/' && src[i + 1] === '*') {
       const sl = line; i += 2;
       while (i < src.length && !(src[i] === '*' && src[i + 1] === '/')) { if (src[i] === '\n') { line++; lineStartIdx = i + 1; } i++; }
       if (i >= src.length) throw new SimplyError(sl, 'A comment never ends', 'You started a comment with <code>/*</code> but never closed it, so I think the whole rest of your file is a comment.', 'Add <code>*/</code> where the comment should stop.');
       i += 2; continue;
     }
-    if (ch === '#' && atLineStart) {
+    if (!py && ch === '#' && atLineStart) {
       const s = i; while (i < src.length && src[i] !== '\n') i++;
       toks.push({ t: 'directive', v: src.slice(s, i).trim(), line, col: s - lineStartIdx + 1 }); continue;
     }
     atLineStart = false;
-    if (ch === '"' || ch === "'") {
-      const q = ch; let j = i + 1, s = '';
-      while (j < src.length && src[j] !== q) {
-        if (src[j] === '\n') break;
-        if (src[j] === '\\') { const e = src[j + 1]; s += ({ n: '\n', t: '\t', '\\': '\\', '"': '"', "'": "'", '0': '\0' })[e] ?? e; j += 2; continue; }
-        s += src[j]; j++;
+    // strings (with interpolation)
+    let prefix = '';
+    if (py && /[fFrRbB]/.test(ch) && (src[i + 1] === '"' || src[i + 1] === "'")) prefix = ch.toLowerCase();
+    if (lang === 'cs' && (ch === '$' || ch === '@') && src[i + 1] === '"') prefix = ch;
+    if (ch === '"' || ch === "'" || ch === '`' || prefix) {
+      const startCol = i - lineStartIdx + 1, startLine = line;
+      if (prefix) i++;
+      let q = src[i];
+      const triple = py && src.startsWith(q.repeat(3), i);
+      if (triple) i += 2;
+      const multi = triple || q === '`';
+      const interp = q === '`' ? 'js' : prefix === 'f' ? 'brace' : prefix === '$' ? 'brace' : (lang === 'swift' && q === '"') ? 'swift' : null;
+      const raw = prefix === 'r' || prefix === '@';
+      let j = i + 1, s = '';
+      const parts = [];
+      const done = () => triple ? src.startsWith(q.repeat(3), j) : src[j] === q;
+      while (j < src.length && !done()) {
+        const cj = src[j];
+        if (cj === '\n') { if (!multi) break; line++; lineStartIdx = j + 1; s += '\n'; j++; continue; }
+        if (interp && ((interp === 'js' && cj === '$' && src[j + 1] === '{') || (interp === 'brace' && cj === '{' && src[j + 1] !== '{') || (interp === 'swift' && cj === '\\' && src[j + 1] === '('))) {
+          const open = interp === 'swift' ? '(' : '{', close = interp === 'swift' ? ')' : '}';
+          let k = j + (interp === 'brace' ? 1 : 2), depth = 1; const cs = k;
+          while (k < src.length && depth > 0 && src[k] !== '\n') { if (src[k] === open) depth++; else if (src[k] === close) depth--; if (depth > 0) k++; }
+          if (depth > 0) throw E('Unfinished { } inside text', `A <code>${interp === 'swift' ? '\\(' : interp === 'js' ? '${' : '{'}</code> inside your text was never closed.`, `Close it with <code>${close}</code>, like <code>${interp === 'swift' ? '"Hi \\(name)"' : interp === 'js' ? '`Hi ${name}`' : (prefix === 'f' ? 'f' : '$') + '"Hi {name}"'}</code>`, j - lineStartIdx + 1);
+          if (s) parts.push(s); s = '';
+          let code = src.slice(cs, k), spec = null;
+          if (interp === 'brace') { const fm = /^(.*?):([<>^]?\d*(?:\.\d+)?[fdse%]?)$/.exec(code); if (fm && fm[2]) { code = fm[1]; spec = fm[2]; } }
+          parts.push({ code, line, spec });
+          j = k + 1; continue;
+        }
+        if (interp === 'brace' && ((cj === '{' && src[j + 1] === '{') || (cj === '}' && src[j + 1] === '}'))) { s += cj; j += 2; continue; }
+        if (cj === '\\' && !raw) { const e = src[j + 1]; s += ({ n: '\n', t: '\t', '\\': '\\', '"': '"', "'": "'", '`': '`', '0': '\0', '$': '$', '{': '{', '}': '}' })[e] ?? ('\\' + e); j += 2; continue; }
+        s += cj; j++;
       }
-      if (j >= src.length || src[j] !== q) {
-        throw new SimplyError(line, 'Missing a closing quote', `You started some text with <code>${q}</code> but the line ended before the closing <code>${q}</code>. Text always needs a quote at the start <i>and</i> at the end.`,
-          `Put a <code>${q}</code> at the end of the text, like: <code>cout ${q}hello${q}</code>`, i - lineStartIdx + 1);
+      if (j >= src.length || !done()) {
+        line = startLine;
+        throw new SimplyError(startLine, 'Missing a closing quote', `You started some text with <code>${escapeHtml(q)}</code> but the line ended before the closing <code>${escapeHtml(q)}</code>. Text always needs a quote at the start <i>and</i> at the end.`,
+          `Put a <code>${escapeHtml(q)}</code> at the end of the text, like: <code>${escapeHtml(q)}hello${escapeHtml(q)}</code>`, startCol);
       }
-      push('str', s, { quote: q }); i = j + 1; continue;
+      const tk = { line: startLine, col: startCol, quote: q };
+      if (parts.length) { if (s) parts.push(s); toks.push({ t: 'tmpl', v: parts, ...tk }); }
+      else toks.push({ t: 'str', v: s, ...tk });
+      i = j + (triple ? 3 : 1); continue;
     }
-    if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[i + 1]))) {
-      const m = /^(\d*\.?\d+(?:[eE][+-]?\d+)?|\d+\.)/.exec(src.slice(i));
-      push('num', parseFloat(m[0])); i += m[0].length;
-      while (/[fFlLuU]/.test(src[i] || '')) i++;
+    if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[i + 1]) && src[i - 1] !== '.')) {
+      const rest = src.slice(i);
+      let m = /^0[bB]([01_]+)/.exec(rest);
+      if (m) { push('num', parseInt(m[1].replace(/_/g, ''), 2), { base: 'bin', text: m[0] }); i += m[0].length; continue; }
+      m = /^0[xX]([0-9a-fA-F_]+)/.exec(rest);
+      if (m) { push('num', parseInt(m[1].replace(/_/g, ''), 16), { base: 'hex', text: m[0] }); i += m[0].length; continue; }
+      m = /^0[oO]([0-7_]+)/.exec(rest);
+      if (m) { push('num', parseInt(m[1].replace(/_/g, ''), 8), { base: 'oct', text: m[0] }); i += m[0].length; continue; }
+      m = /^(\d[\d_]*\.?[\d_]*(?:[eE][+-]?\d+)?|\.\d+)/.exec(rest);
+      let txt = m[0];
+      if (/\.$/.test(txt) && src[i + txt.length] === '.') txt = txt.slice(0, -1); // 1...5
+      push('num', parseFloat(txt.replace(/_/g, ''))); i += txt.length;
+      while (/[fFlLuUmMdD]/.test(src[i] || '') && !/[A-Za-z_0-9]/.test(src[i + 1] || '')) i++;
       continue;
     }
     if (/[A-Za-z_]/.test(ch)) {
       const m = /^[A-Za-z_]\w*/.exec(src.slice(i));
       if (m[0] === 'std' && src.slice(i + 3, i + 5) === '::') { i += 5; continue; }
+      if (firstWord === null) firstWord = m[0];
       push('id', m[0]); i += m[0].length; continue;
     }
+    if (py && src.startsWith('//', i)) { push('op', '//'); i += 2; continue; }
     const op = OPS.find(o => src.startsWith(o, i));
     if (!op) {
-      throw new SimplyError(line, `I don't know the symbol "${escapeHtml(ch)}"`, `The character <code>${escapeHtml(ch)}</code> doesn't mean anything in Simply C++.`,
+      throw new SimplyError(line, `I don't know the symbol "${escapeHtml(ch)}"`, `The character <code>${escapeHtml(ch)}</code> doesn't mean anything here.`,
         ch === '“' || ch === '”' ? 'Those are "curly" quotes (from a word processor). Use plain straight quotes <code>"</code> instead.' : 'Delete it, or put it inside quotes if it is part of some text.', i - lineStartIdx + 1);
     }
+    if (firstWord === null) firstWord = '';
+    // Python: a ':' that ends an if/for/def... line opens a block
+    if (py && op === ':' && !stack.length && PY_BLOCK_WORDS.has(firstWord)) {
+      let j = i + 1; while (src[j] === ' ' || src[j] === '\t' || src[j] === '\r') j++;
+      push('op', '{');
+      if (j >= src.length || src[j] === '\n' || src[j] === '#') pendingBlock = line;
+      else inlineBlocks++;
+      i++; continue;
+    }
+    if (py && (op === '{' || op === '}')) throw E('Curly braces aren\'t used in Python', 'Python uses a <code>:</code> and indentation (spaces) for blocks instead of <code>{ }</code>.', 'End the line with <code>:</code> and indent the next lines by 4 spaces.', i - lineStartIdx + 1);
     if (op === '(' || op === '[' || op === '{') stack.push(op);
     if (op === ')' || op === ']' || op === '}') stack.pop();
     push('op', op); i += op.length;
+  }
+  if (py) {
+    closeInline();
+    if (pendingBlock) throw new SimplyError(pendingBlock, 'Missing indented block', `Line ${pendingBlock} ends with <code>:</code>, but nothing indented comes after it.`, 'Add at least one indented line after it (or write <code>pass</code> to do nothing).');
+    if (toks.length && toks[toks.length - 1].t !== 'nl') push('nl', '\n');
+    while (indents.length > 1) { indents.pop(); push('op', '}'); push('nl', '\n'); }
   }
   toks.push({ t: 'eof', v: '', line, col: i - lineStartIdx + 1 });
   return toks;
 }
 
 /* ---------------- Parser ---------------- */
+const MODIFIERS = new Set(['public','private','protected','internal','static','readonly','override','sealed','async','virtual','final','abstract','export','unsafe','extern','inline','constexpr','mutating']);
+const ANNOT_TYPES = { int:'int', Int:'int', Int32:'int', Int64:'int', long:'int', double:'double', Double:'double', float:'double', Float:'double', decimal:'double',
+  str:'string', String:'string', string:'string', bool:'bool', Bool:'bool', Boolean:'bool', boolean:'bool', char:'char', Character:'char',
+  list:'list', List:'list', Array:'list', number:'double', any:'auto', Any:'auto', object:'auto', var:'auto', void:'void', Void:'void', None:'void' };
+
 class Parser {
   constructor(toks, lang) { this.t = toks; this.i = 0; this.lang = lang || 'cpp'; }
   peek(k = 0) { return this.t[Math.min(this.i + k, this.t.length - 1)]; }
@@ -387,14 +502,17 @@ class Parser {
     if (tk.t === 'eof') return 'the end of the file';
     if (tk.t === 'nl') return 'the end of the line';
     if (tk.t === 'str') return `the text <code>"${escapeHtml(tk.v)}"</code>`;
+    if (tk.t === 'tmpl') return 'some text';
     if (tk.t === 'num') return `the number <code>${tk.v}</code>`;
     if (tk.t === 'id') return `the word <code>${escapeHtml(tk.v)}</code>`;
+    if (this.lang === 'py' && tk.t === 'op' && tk.v === '{') return '<code>:</code>';
     return `<code>${escapeHtml(tk.v)}</code>`;
   }
   err(tk, title, what, fix) { return new SimplyError(tk.line, title, what, fix, tk.col); }
   expectOp(v, where, fix) {
     if (this.isOp(v)) return this.next();
     const tk = this.peek();
+    if (this.lang === 'py' && v === '{') throw this.err(tk, 'Missing ":"', `I expected a <code>:</code> at the end of this line${where ? ' ' + where : ''}, but found ${this.desc(tk)}.`, 'In Python, lines like <code>if</code>, <code>for</code>, <code>while</code> and <code>def</code> end with a colon: <code>if x &gt; 5:</code>');
     throw this.err(tk, `Missing "${v}"`, `I expected a <code>${escapeHtml(v)}</code>${where ? ' ' + where : ''}, but found ${this.desc(tk)}.`,
       fix || (v === ')' ? 'Every <code>(</code> needs a matching <code>)</code>. Count them!' : v === ']' ? 'Every <code>[</code> needs a matching <code>]</code>.' : `Add a <code>${escapeHtml(v)}</code> there.`));
   }
@@ -403,10 +521,12 @@ class Parser {
     if (tk.t === 'id' && !RESERVED.has(tk.v)) return this.next();
     throw this.err(tk, `Expected a name`, `I expected ${what}, but found ${this.desc(tk)}.`, 'Names can use letters, numbers and _ (but can\'t start with a number), like <code>score</code> or <code>player_name</code>.');
   }
+  skipLine() { while (!this.atEnd()) this.next(); }
 
   parseProgram() {
     const body = []; this.skipSeps();
-    while (!this.is('eof')) { body.push(this.parseStatement()); this.skipSeps(); }
+    const add = n => { if (n.type === 'Container') { if (n.note) body.push(n.note); n.body.forEach(add); } else body.push(n); };
+    while (!this.is('eof')) { add(this.parseStatement()); this.skipSeps(); }
     return body;
   }
   parseBlock() {
@@ -414,7 +534,9 @@ class Parser {
     const body = []; this.skipSeps();
     while (!this.isOp('}')) {
       if (this.is('eof')) throw new SimplyError(open.line, 'A { is never closed', `The <code>{</code> on line ${open.line} opens a block of code, but there's no <code>}</code> to close it.`, 'Add a <code>}</code> after the last line that belongs inside the block.', open.col);
-      body.push(this.parseStatement()); this.skipSeps();
+      const st = this.parseStatement();
+      if (st.type === 'Container') body.push(...st.body); else body.push(st);
+      this.skipSeps();
     }
     this.next();
     return body;
@@ -422,6 +544,7 @@ class Parser {
   parseBody() {
     this.skipNL();
     if (this.isOp('{')) return this.parseBlock();
+    if (this.lang === 'py') this.expectOp('{');
     if (this.is('eof')) throw this.err(this.peek(), 'Missing the body', 'This needs some code to run (usually inside <code>{ }</code>), but the file ended.', 'Add <code>{</code> your code <code>}</code>.');
     return [this.parseStatement()];
   }
@@ -431,41 +554,63 @@ class Parser {
     if (this.is('eof') || this.isOp('}')) return;
     const tk = this.peek();
     let fix = 'Put each instruction on its own line (or separate them with <code>;</code>).';
-    if (tk.t === 'str' || tk.t === 'num' || tk.t === 'id') fix = 'If you wanted to join things together, put a <code>+</code> between them, like <code>"Hi " + name</code>.';
-    if (tk.t === 'op' && tk.v === '<') fix = 'cout uses two arrows: <code>&lt;&lt;</code>';
+    if (tk.t === 'str' || tk.t === 'num' || tk.t === 'id' || tk.t === 'tmpl') fix = 'If you wanted to join things together, put a <code>+</code> between them, like <code>"Hi " + name</code>.';
+    if (tk.t === 'op' && tk.v === '<' && this.lang === 'cpp') fix = 'cout uses two arrows: <code>&lt;&lt;</code>';
+    if (this.lang === 'py' && tk.t === 'op' && tk.v === '{') fix = 'Only lines that start with <code>if</code>, <code>for</code>, <code>while</code>, <code>def</code>, <code>else</code>… end with <code>:</code>.';
     throw this.err(tk, 'Something extra on this line', `I thought this instruction was finished, but then I found ${this.desc(tk)}.`, fix);
   }
 
   looksLikeType(k0 = 0) {
     let k = k0;
-    while (this.isId('const', k) || this.isId('static', k)) k++;
+    while (this.isId('const', k) || this.isId('static', k) || (this.peek(k).t === 'id' && MODIFIERS.has(this.peek(k).v))) k++;
+    if (k > k0 && this.isId('const', k - 1) && this.peek(k).t === 'id' && !(this.peek(k).v in TYPE_WORDS) && (this.isOp('=', k + 1) || this.isOp(':', k + 1) || this.isOp(',', k + 1))) return true; // JS const x = …
     const w = this.peek(k);
     if (w.t !== 'id' || !(w.v in TYPE_WORDS)) return false;
     k++;
     while (this.peek(k).t === 'id' && this.peek(k).v in TYPE_WORDS && (this.peek(k + 1).t === 'id' || this.isOp('&', k + 1))) k++;
-    if (this.isOp('<', k)) return true;
+    if (this.isOp('<', k)) return this.isOp('>', k + 2) || this.isOp('>>', k + 2) || this.isOp('<', k + 2) || this.isOp(',', k + 2) || this.isOp('[', k + 2);
+    if (this.isOp('[', k) && this.isOp(']', k + 1)) k += 2;
+    if (this.isOp('?', k)) k++;
     while (this.isOp('&', k) || this.isOp('*', k)) k++;
-    return this.peek(k).t === 'id' && !RESERVED.has(this.peek(k).v) && !['and','or','not'].includes(this.peek(k).v);
+    return this.peek(k).t === 'id' && !RESERVED.has(this.peek(k).v) && !['and','or','not','in','is'].includes(this.peek(k).v);
   }
   parseType() {
     let isConst = false;
-    while (this.isId('const') || this.isId('static')) { if (this.next().v === 'const') isConst = true; }
+    while (this.isId('const') || this.isId('static') || (this.peek().t === 'id' && MODIFIERS.has(this.peek().v) && this.peek(1).t === 'id')) {
+      const w = this.next().v; if (w === 'const' || w === 'readonly') isConst = true;
+    }
+    if (!(this.peek().v in TYPE_WORDS)) return { t: 'auto', isConst, ref: false };
     let words = [this.next().v];
     while (this.peek().t === 'id' && this.peek().v in TYPE_WORDS && (this.peek(1).t === 'id' || this.isOp('&', 1))) words.push(this.next().v);
     let t = TYPE_WORDS[words.find(w => !['unsigned','long','short'].includes(w)) || words[0]];
-    if (this.isOp('<')) { // vector<int>
-      let depth = 0;
-      do {
-        const tk = this.next();
-        if (tk.t === 'op' && tk.v === '<') depth++;
-        else if (tk.t === 'op' && tk.v === '>') depth--;
-        else if (tk.t === 'op' && tk.v === '>>') depth -= 2;
-        else if (tk.t === 'eof' || tk.t === 'nl') throw this.err(tk, 'Unfinished type', 'A type like <code>vector&lt;int&gt;</code> needs its closing <code>&gt;</code>.', 'Add <code>&gt;</code>.');
-      } while (depth > 0);
-    }
+    if (words[0] === 'let' && this.lang === 'swift') isConst = true;
+    if (this.isOp('<')) this.skipGenerics();
+    if (this.isOp('[') && this.isOp(']', 1)) { this.next(); this.next(); t = 'list'; }
+    if (this.isOp('?')) this.next();
     let ref = false;
     while (this.isOp('&') || this.isOp('*')) { this.next(); ref = true; }
     return { t, isConst, ref };
+  }
+  skipGenerics() {
+    let depth = 0;
+    do {
+      const tk = this.next();
+      if (tk.t === 'op' && tk.v === '<') depth++;
+      else if (tk.t === 'op' && tk.v === '>') depth--;
+      else if (tk.t === 'op' && tk.v === '>>') depth -= 2;
+      else if (tk.t === 'eof' || tk.t === 'nl') throw this.err(tk, 'Unfinished type', 'A type like <code>vector&lt;int&gt;</code> needs its closing <code>&gt;</code>.', 'Add <code>&gt;</code>.');
+    } while (depth > 0);
+  }
+  parseAnnot() { // Swift / Python / TS style ": Type"
+    if (this.isOp('[')) { let d = 0; do { const tk = this.next(); if (tk.v === '[') d++; else if (tk.v === ']') d--; if (tk.t === 'eof' || tk.t === 'nl') break; } while (d > 0); while (this.isOp('?') || this.isOp('!')) this.next(); return 'list'; }
+    const tk = this.peek();
+    if (tk.t !== 'id') throw this.err(tk, 'Expected a type', `After <code>:</code> I expected a type like <code>Int</code> or <code>String</code>, but found ${this.desc(tk)}.`, 'Write it like <code>var age: Int = 12</code>.');
+    this.next();
+    let t = ANNOT_TYPES[tk.v] || TYPE_WORDS[tk.v] || 'auto';
+    if (this.isOp('<')) this.skipGenerics();
+    if (this.isOp('[') && this.isOp(']', 1)) { this.next(); this.next(); t = 'list'; }
+    while (this.isOp('?') || this.isOp('!')) this.next();
+    return t;
   }
 
   parseStatement() {
@@ -474,9 +619,25 @@ class Parser {
     if (tk.t === 'op' && tk.v === '{') return { type: 'Block', body: this.parseBlock(), line: tk.line };
     if (tk.t === 'op' && tk.v === '}') throw this.err(tk, 'An extra }', 'This <code>}</code> doesn\'t close anything — there\'s no matching <code>{</code> before it.', 'Delete this <code>}</code>, or check that every <code>{</code> and <code>}</code> pair up.');
     if (tk.t === 'id') {
+      // skip C#/Java modifiers like "public static"
+      if (MODIFIERS.has(tk.v) && this.peek(1).t === 'id' && !this.looksLikeType()) {
+        let k = 0; while (this.peek(k).t === 'id' && MODIFIERS.has(this.peek(k).v)) k++;
+        if (['class', 'struct', 'namespace', 'void', 'func', 'function', 'def'].includes(this.peek(k).v) || this.isOp('(', k + 1)) { this.i += k; return this.parseStatement(); }
+      }
       switch (tk.v) {
-        case 'using': this.next(); while (!this.atEnd()) this.next(); this.endStatement(); return { type: 'Using', line: tk.line };
+        case 'using': case 'import': case 'from': case 'package':
+          if (tk.v === 'using' && this.isOp('(', 1)) break;
+          this.next(); { const startI = this.i; this.skipLine(); const text = tk.v + ' ' + this.t.slice(startI, this.i).map(t => t.v).join(' ').replace(/ \. /g, '.').replace(/ ([.;])/g, '$1'); this.endStatement(); return { type: 'Using', text, line: tk.line }; }
+        case 'namespace': case 'class': case 'struct':
+          if (this.lang === 'cs' || tk.v === 'namespace') {
+            this.next(); const name = this.expectId(`a name for the ${tk.v}`).v;
+            while (!this.isOp('{') && !this.atEnd()) this.next();
+            this.skipNL(); const body = this.parseBlock();
+            return { type: 'Container', body, note: { type: 'Note', kind: tk.v, name, line: tk.line }, line: tk.line };
+          }
+          throw this.err(tk, `"${tk.v}" isn't supported yet`, `Making your own <code>${tk.v}</code> is an advanced feature that the Simple versions don't have yet.`, 'Use functions and lists instead — they can do almost everything a beginner needs.');
         case 'if': return this.parseIf();
+        case 'elif': throw this.err(tk, '"elif" without an "if"', '<code>elif</code> has to come right after an <code>if</code> block.', 'Make sure there is an <code>if ...:</code> directly above it, lined up the same.');
         case 'while': { this.next(); const cond = this.parseCond('while'); return { type: 'While', cond, body: this.parseBody(), line: tk.line }; }
         case 'do': {
           this.next(); const body = this.parseBody(); this.skipSeps();
@@ -484,15 +645,22 @@ class Parser {
           this.next(); const cond = this.parseCond('while'); this.endStatement();
           return { type: 'DoWhile', cond, body, line: tk.line };
         }
-        case 'for': return this.parseFor();
+        case 'for': case 'foreach': return this.parseFor();
         case 'repeat': {
           this.next();
-          if (this.isOp('{')) throw this.err(this.peek(), 'repeat needs a number', '<code>repeat</code> needs to know how many times.', 'Write it like <code>repeat 3 { ... }</code>.');
+          if (this.isOp('{')) { // Swift: repeat { } while cond
+            const body = this.parseBlock(); this.skipSeps();
+            if (!this.isId('while')) throw this.err(this.peek(), 'repeat needs a number', '<code>repeat</code> needs to know how many times — or, Swift style, a <code>while</code> after the block.', 'Write <code>repeat 3 { ... }</code> or <code>repeat { ... } while x &lt; 5</code>.');
+            this.next(); const cond = this.parseCond('while'); this.endStatement();
+            return { type: 'DoWhile', cond, body, line: tk.line };
+          }
           const count = this.parseExpr(); this.match('id', 'times');
           return { type: 'Repeat', count, body: this.parseBody(), line: tk.line };
         }
-        case 'else': throw this.err(tk, '"else" without an "if"', '<code>else</code> has to come right after the <code>}</code> of an <code>if</code>.', 'Make sure there is an <code>if (...) { }</code> directly above this else.');
-        case 'func': case 'function': case 'fn': this.next(); return this.parseFuncRest({ t: 'auto' }, tk);
+        case 'else': throw this.err(tk, '"else" without an "if"', '<code>else</code> has to come right after the end of an <code>if</code> block.', 'Make sure there is an <code>if</code> directly above this else.');
+        case 'func': case 'function': case 'fn': case 'def': this.next(); return this.parseFuncRest({ t: 'auto' }, tk);
+        case 'pass': this.next(); this.endStatement(); return { type: 'Pass', line: tk.line };
+        case 'global': case 'nonlocal': this.next(); this.skipLine(); this.endStatement(); return { type: 'Pass', note: tk.v, line: tk.line };
       }
       if (this.looksLikeType()) {
         const save = this.i;
@@ -508,48 +676,59 @@ class Parser {
 
   parseFuncRest(ty, startTk) {
     const name = this.expectId('a name for the function').v;
+    if (this.isOp('<')) this.skipGenerics();
     this.expectOp('(', 'after the function name');
     const params = [];
     if (this.isId('void') && this.isOp(')', 1)) this.next(); // C: int main(void)
     this.skipNL();
     while (!this.isOp(')')) {
       let pty = { t: 'auto' };
-      if (this.isId('const') || (this.peek().t === 'id' && this.peek().v in TYPE_WORDS && (this.peek(1).t === 'id' || this.isOp('&', 1) || this.isOp('*', 1) || this.isOp('<', 1) || this.peek(1).v in TYPE_WORDS)))
+      if (this.isId('self') && (this.isOp(',', 1) || this.isOp(')', 1))) { this.next(); this.match('op', ','); continue; }
+      if (this.isId('const') || (this.peek().t === 'id' && this.peek().v in TYPE_WORDS && (this.peek(1).t === 'id' || this.isOp('&', 1) || this.isOp('*', 1) || this.isOp('<', 1) || this.isOp('[', 1) || this.peek(1).v in TYPE_WORDS)))
         pty = this.parseType();
       while (this.isOp('&')) { this.next(); pty.ref = true; }
+      if (this.peek().t === 'id' && this.peek(1).t === 'id' && this.isOp(':', 2)) this.next(); // Swift argument label: "_ name: Int"
       const pname = this.expectId('a name for this input (parameter)').v;
       let isList = false;
       if (this.match('op', '[')) { this.expectOp(']'); isList = true; pty = { ...pty, t: 'list', ref: true }; }
+      if (this.match('op', ':')) pty = { ...pty, t: this.parseAnnot() };
       let def = null;
       if (this.match('op', '=')) def = this.parseExpr();
-      params.push({ name: pname, type: pty.t, ref: !!pty.ref || isList, def });
+      params.push({ name: pname, type: pty.t, ref: !!pty.ref || isList || pty.t === 'list', def });
       this.skipNL();
       if (!this.match('op', ',')) break;
       this.skipNL();
     }
     this.expectOp(')', 'to finish the list of inputs');
+    let retType = ty.t;
+    if (this.match('op', '->') || this.match('op', ':')) retType = this.parseAnnot();
     this.skipNL();
-    if (this.isOp(';')) throw this.err(this.peek(), 'No prototypes needed', 'In Simply C++ you don\'t have to declare a function before writing it — just write the full function (with its <code>{ }</code> body) anywhere in the file.', 'Delete this line, or add the body: <code>{ ... }</code>');
-    if (!this.isOp('{')) throw this.err(this.peek(), 'Function needs a body', `The function <code>${name}</code> needs its code inside <code>{ }</code>.`, `Write it like: <code>func ${name}() { cout "hi" }</code>`);
+    if (this.isOp(';')) throw this.err(this.peek(), 'No prototypes needed', 'In the Simple languages you don\'t have to declare a function before writing it — just write the full function (with its body) anywhere in the file.', 'Delete this line, or add the body.');
+    if (this.isOp('=>')) throw this.err(this.peek(), 'Arrow functions aren\'t supported yet', '<code>=&gt;</code> shortcut functions are an advanced feature.', 'Write a normal function with <code>{ }</code> and <code>return</code>.');
+    if (!this.isOp('{')) {
+      if (this.lang === 'py') this.expectOp('{', 'after the function\'s inputs');
+      throw this.err(this.peek(), 'Function needs a body', `The function <code>${name}</code> needs its code inside <code>{ }</code>.`, `Write it like: <code>func ${name}() { print "hi" }</code>`);
+    }
     const body = this.parseBlock();
-    return { type: 'Func', name, params, retType: ty.t, body, line: startTk.line };
+    return { type: 'Func', name, params, retType, body, line: startTk.line };
   }
 
   parseCond(word) {
     if (this.isOp('{') || this.atEnd()) throw this.err(this.peek(), `${word} needs a condition`, `<code>${word}</code> needs a question to check, like <code>${word} x &gt; 5</code>.`, `Add a condition after <code>${word}</code>.`);
     const e = this.parseExpr();
-    if (e.type === 'Assign' && e.op === '=') throw new SimplyError(e.line, 'Use == to compare', `Inside an <code>${word}</code>, a single <code>=</code> means "put a value in a box" — not "is equal to". (Real C++ allows this and it causes sneaky bugs!)`,
+    if (e.type === 'Assign' && e.op === '=') throw new SimplyError(e.line, 'Use == to compare', `Inside an <code>${word}</code>, a single <code>=</code> means "put a value in a box" — not "is equal to". (Real C and C++ allow this and it causes sneaky bugs!)`,
       `Use two equals signs to compare: <code>${escapeHtml(src(e.target))} == ${escapeHtml(src(e.value))}</code>`);
     return e;
   }
   parseIf() {
     const tk = this.next();
-    const cond = this.parseCond('if');
+    const cond = this.parseCond(tk.v === 'elif' ? 'elif' : 'if');
     const body = this.parseBody();
     let elseBody = null;
     const save = this.i;
     while (this.is('nl') || this.isOp(';')) this.next();
-    if (this.isId('else')) {
+    if (this.isId('elif')) elseBody = [this.parseIf()];
+    else if (this.isId('else')) {
       this.next();
       if (this.isId('if')) elseBody = [this.parseIf()];
       else elseBody = this.parseBody();
@@ -560,10 +739,10 @@ class Parser {
     const tk = this.next();
     const paren = !!this.match('op', '(');
     let k = 0;
-    if (this.peek().t === 'id' && this.peek().v in TYPE_WORDS && (this.peek(1).t === 'id' || this.isOp('&', 1))) { k = 1; while (this.isOp('&', k)) k++; }
-    if (this.peek(k).t === 'id' && (this.isId('in', k + 1) || this.isOp(':', k + 1))) {
+    while (this.peek(k).t === 'id' && (this.peek(k).v in TYPE_WORDS || this.peek(k).v === 'const') && (this.peek(k + 1).t === 'id' || this.isOp('&', k + 1))) { k++; while (this.isOp('&', k)) k++; }
+    if (this.peek(k).t === 'id' && (this.isId('in', k + 1) || this.isId('of', k + 1) || this.isOp(':', k + 1))) {
       this.i += k;
-      const name = this.next().v; this.next();
+      const name = this.next().v; const kw = this.next().v;
       const start = this.parseExpr();
       if (this.isId('to') || this.isId('until')) {
         const kind = this.next().v;
@@ -574,9 +753,9 @@ class Parser {
         return { type: 'ForRange', name, start, end, step, exclusive: kind === 'until', body: this.parseBody(), line: tk.line };
       }
       if (paren) this.expectOp(')', 'to close the for loop');
-      return { type: 'ForEach', name, iter: start, body: this.parseBody(), line: tk.line };
+      return { type: 'ForEach', name, iter: start, kw, body: this.parseBody(), line: tk.line };
     }
-    if (!paren) throw this.err(this.peek(), 'I don\'t understand this for loop', 'A Simply C++ for loop looks like <code>for i in 1 to 10</code> or <code>for x in myList</code>. The classic C++ style needs parentheses.',
+    if (!paren) throw this.err(this.peek(), 'I don\'t understand this for loop', 'A simple for loop looks like <code>for i in 1 to 10</code> or <code>for x in myList</code>. The classic C style needs parentheses.',
       'Try <code>for i in 1 to 5 { ... }</code> or <code>for (int i = 0; i &lt; 5; i++) { ... }</code>');
     let init = null, cond = null, update = null;
     if (!this.isOp(';')) init = this.parseSimple();
@@ -593,15 +772,19 @@ class Parser {
     if (tk.t === 'id') {
       switch (tk.v) {
         case 'cout': case 'cin':
-          if (this.lang === 'c') throw this.err(tk, `${tk.v === 'cout' ? 'c<!-- -->out' : 'c<!-- -->in'} is from C+<!-- -->+, not C`, `<code>${tk.v === 'cout' ? 'c<!-- -->out' : 'c<!-- -->in'}</code> only exists in C+<!-- -->+. You're writing <b>Simple C</b> right now.`,
-            tk.v === 'cout' ? 'Use <code>print "hi"</code> (or real C: <code>printf("hi\\n");</code>). Or switch to Simply C+<!-- -->+ at the top.' : 'Use <code>scan age</code> (or real C: <code>scanf("%d", &amp;age);</code>). Or switch to Simply C+<!-- -->+ at the top.');
+          if (this.lang !== 'cpp') throw this.err(tk, `${tk.v === 'cout' ? 'c<!-- -->out' : 'c<!-- -->in'} is from C+<!-- -->+`, `<code>${tk.v === 'cout' ? 'c<!-- -->out' : 'c<!-- -->in'}</code> only exists in C+<!-- -->+. You're writing <b>${escapeHtml(LANG_NAME(this.lang))}</b> right now.`,
+            tk.v === 'cout' ? `Use ${LANG_HINT(this.lang, 'print')}. Or switch to Simply C+<!-- -->+ at the top.` : `Use ${LANG_HINT(this.lang, 'input')}. Or switch to Simply C+<!-- -->+ at the top.`);
           return tk.v === 'cout' ? this.parseCout() : this.parseCin();
         case 'print': case 'say': return this.parseCout();
         case 'scan': return this.parseCin();
-        case 'cin': return this.parseCin();
         case 'return': { this.next(); const value = this.atEnd() ? null : this.parseExpr(); return { type: 'Return', value, line: tk.line }; }
         case 'break': this.next(); return { type: 'Break', line: tk.line };
         case 'continue': this.next(); return { type: 'Continue', line: tk.line };
+      }
+      if (this.lang === 'py' && this.isOp(':', 1)) { // x: int = 5
+        const nameTk = this.next(); this.next(); const t = this.parseAnnot();
+        let init = null; if (this.match('op', '=')) init = this.parseExpr();
+        return { type: 'Decl', varType: t, items: [{ name: nameTk.v, init, line: nameTk.line }], line: tk.line };
       }
       if (this.looksLikeType()) { const ty = this.parseType(); return this.parseDecl(ty, tk); }
     }
@@ -611,16 +794,19 @@ class Parser {
   parseDecl(ty, tk) {
     if (ty.t === 'void') throw this.err(tk, 'void boxes can\'t hold anything', '<code>void</code> means "nothing" — it\'s only used for functions that don\'t give back an answer.', 'Pick a real type like <code>int</code>, <code>string</code>, or <code>auto</code>.');
     const items = [];
+    let declType = ty.t;
     do {
       const nameTk = this.expectId('a name for the variable');
-      let init = null, size = null;
+      let init = null, size = null, t = declType;
       if (this.match('op', '[')) { if (!this.isOp(']')) size = this.parseExpr(); this.expectOp(']'); }
+      if (this.match('op', ':')) t = this.parseAnnot();
       if (this.match('op', '=')) { this.skipNL(); init = this.parseExpr(); }
       else if (this.isOp('{')) init = this.parsePrimary();
       else if (this.isOp('(')) { this.next(); const args = this.parseArgs(')'); init = args[0] || null; }
-      items.push({ name: nameTk.v, init, size, line: nameTk.line });
+      items.push({ name: nameTk.v, init, size, line: nameTk.line, t });
     } while (this.match('op', ','));
-    return { type: 'Decl', varType: ty.t, isConst: ty.isConst, items, line: tk.line };
+    const varType = items.length === 1 ? items[0].t : declType;
+    return { type: 'Decl', varType, isConst: ty.isConst, items, line: tk.line };
   }
   parseCout() {
     const tk = this.next();
@@ -635,7 +821,14 @@ class Parser {
       return { type: 'Print', mode: 'stream', parts, line: tk.line };
     }
     const parts = [];
-    if ((tk.v === 'print' || tk.v === 'say') && this.isOp('(')) { this.next(); parts.push(...this.parseArgs(')')); }
+    if ((tk.v === 'print' || tk.v === 'say') && this.isOp('(')) {
+      const save = this.i;
+      this.next(); parts.push(...this.parseArgs(')'));
+      if (!this.atEnd()) { // print ("a") + "b"  → the ( ) was just grouping
+        this.i = save; parts.length = 0;
+        parts.push(this.parseExpr()); while (this.match('op', ',')) parts.push(this.parseExpr());
+      }
+    }
     else if (!this.atEnd()) { parts.push(this.parseExpr()); while (this.match('op', ',')) parts.push(this.parseExpr()); }
     return { type: 'Print', mode: 'line', parts, line: tk.line };
   }
@@ -644,13 +837,13 @@ class Parser {
     if (tk.v === 'cin' && this.isOp('<<')) throw this.err(this.peek(), 'cin uses >> (not <<)', '<code>cin</code> brings things IN from the keyboard, so the arrows point away from cin into your variable: <code>cin &gt;&gt; name</code>.', 'Or skip the arrows: <code>cin name</code>');
     if (this.isOp('>>')) { while (this.match('op', '>>')) targets.push(this.parsePostfix()); }
     else {
-      if (this.atEnd()) throw this.err(this.peek(), 'cin needs a box to fill', '<code>cin</code> needs to know which variable to put the typed answer in.', 'Write it like <code>cin name</code> or <code>cin "What\'s your name? " name</code>');
-      if (this.is('str')) prompt = { type: 'Str', value: this.next().v, line: tk.line };
+      if (this.atEnd()) throw this.err(this.peek(), `${tk.v} needs a box to fill`, `<code>${tk.v}</code> needs to know which variable to put the typed answer in.`, `Write it like <code>${tk.v} name</code> or <code>${tk.v} "What's your name? " name</code>`);
+      if (this.is('str') || this.is('tmpl')) prompt = this.parsePrimary();
       targets.push(this.parsePostfix());
       while (this.match('op', ',')) targets.push(this.parsePostfix());
     }
     for (const t of targets) if (t.type !== 'Ident' && t.type !== 'Index')
-      throw new SimplyError(tk.line, 'cin needs a variable', `<code>cin</code> can only put what you type into a variable, not into ${escapeHtml(src(t))}.`, 'Write it like <code>cin age</code>.');
+      throw new SimplyError(tk.line, `${tk.v} needs a variable`, `<code>${tk.v}</code> can only put what you type into a variable, not into ${escapeHtml(src(t))}.`, `Write it like <code>${tk.v} age</code>.`);
     return { type: 'Input', targets, prompt, line: tk.line };
   }
 
@@ -668,12 +861,18 @@ class Parser {
     return left;
   }
   parseTernary() {
-    const c = this.parseOr();
+    const c = this.parseNullish();
     if (this.isOp('?')) {
       const tk = this.next(); this.skipNL();
       const a = this.parseAssign(); this.skipNL(); this.expectOp(':', 'in the "? :" shortcut'); this.skipNL();
       const b = this.parseAssign();
       return { type: 'Ternary', c, a, b, line: tk.line };
+    }
+    if (this.lang === 'py' && this.isId('if')) { // a if cond else b
+      const tk = this.next(); const cond = this.parseNullish();
+      if (!this.match('id', 'else')) throw this.err(this.peek(), 'Missing "else"', 'A one-line <code>x if condition else y</code> needs the <code>else</code> part.', 'Like <code>"big" if n &gt; 10 else "small"</code>');
+      const b = this.parseTernary();
+      return { type: 'Ternary', c: cond, a: c, b, py: true, line: tk.line };
     }
     return c;
   }
@@ -681,23 +880,40 @@ class Parser {
     let left = nextFn();
     for (;;) {
       const tk = this.peek();
-      if (!((tk.t === 'op' || tk.t === 'id') && ops.includes(tk.v))) break;
+      if (!((tk.t === 'op' || tk.t === 'id') && ops.includes(tk.v))) {
+        if (ops.includes('in') && tk.t === 'id' && tk.v === 'not' && this.isId('in', 1)) { this.next(); this.next(); this.skipNL(); left = { type: 'Bin', op: 'not in', word: 'not in', left, right: nextFn(), line: tk.line }; continue; }
+        break;
+      }
+      if (tk.v === 'is' && this.isId('not', 1)) { this.next(); this.next(); this.skipNL(); left = { type: 'Bin', op: '!=', word: 'is not', left, right: nextFn(), line: tk.line }; continue; }
       this.next(); this.skipNL();
       const right = nextFn();
-      const op = tk.v === 'and' ? '&&' : tk.v === 'or' ? '||' : tk.v;
-      left = { type: 'Bin', op, word: tk.t === 'id' ? tk.v : null, left, right, line: tk.line };
+      const op = { and: '&&', or: '||', is: '==', '===': '==', '!==': '!=' }[tk.v] || tk.v;
+      left = { type: 'Bin', op, word: op !== tk.v ? tk.v : null, left, right, line: tk.line };
     }
     return left;
   }
+  parseNullish() { return this.bin(() => this.parseOr(), ['??']); }
   parseOr() { return this.bin(() => this.parseAnd(), ['||', 'or']); }
-  parseAnd() { return this.bin(() => this.parseEq(), ['&&', 'and']); }
-  parseEq() { return this.bin(() => this.parseCmp(), ['==', '!=']); }
-  parseCmp() { return this.bin(() => this.parseAdd(), ['<', '>', '<=', '>=']); }
+  parseAnd() { return this.bin(() => this.parseBitOr(), ['&&', 'and']); }
+  parseBitOr() { return this.bin(() => this.parseBitXor(), ['|']); }
+  parseBitXor() { return this.bin(() => this.parseBitAnd(), ['^']); }
+  parseBitAnd() { return this.bin(() => this.parseEq(), ['&']); }
+  parseEq() { return this.bin(() => this.parseCmp(), ['==', '!=', '===', '!==', 'is']); }
+  parseCmp() { return this.bin(() => this.parseRange(), ['<', '>', '<=', '>=', 'in']); }
+  parseRange() {
+    const left = this.parseShift();
+    if (this.isOp('...') || this.isOp('..<')) {
+      const tk = this.next(); const right = this.parseShift();
+      return { type: 'Range', left, right, exclusive: tk.v === '..<', line: tk.line };
+    }
+    return left;
+  }
+  parseShift() { return this.lang === 'cpp' ? this.parseAdd() : this.bin(() => this.parseAdd(), ['<<', '>>']); }
   parseAdd() { return this.bin(() => this.parseMul(), ['+', '-']); }
-  parseMul() { return this.bin(() => this.parseUnary(), ['*', '/', '%']); }
+  parseMul() { return this.bin(() => this.parseUnary(), ['*', '/', '%', '//']); }
   parseUnary() {
     const tk = this.peek();
-    if ((tk.t === 'op' && ['!', '-', '+'].includes(tk.v)) || (tk.t === 'id' && tk.v === 'not')) {
+    if ((tk.t === 'op' && ['!', '-', '+', '~'].includes(tk.v)) || (tk.t === 'id' && tk.v === 'not')) {
       this.next(); const arg = this.parseUnary();
       return { type: 'Unary', op: tk.v === 'not' ? '!' : tk.v, word: tk.v === 'not', arg, line: tk.line };
     }
@@ -710,7 +926,14 @@ class Parser {
       this.checkTarget(target, tk);
       return { type: 'Inc', op: tk.v, prefix: true, target, line: tk.line };
     }
-    return this.parsePostfix();
+    if (tk.t === 'id' && tk.v === 'typeof' && this.lang === 'js') { this.next(); return { type: 'Call', name: 'typeOf', args: [this.parseUnary()], line: tk.line }; }
+    if (tk.t === 'id' && tk.v === 'await') { this.next(); return this.parseUnary(); }
+    return this.parsePow();
+  }
+  parsePow() {
+    const base = this.parsePostfix();
+    if (this.isOp('**')) { const tk = this.next(); return { type: 'Bin', op: '**', left: base, right: this.parseUnary(), line: tk.line }; }
+    return base;
   }
   checkTarget(t, tk) {
     if (t.type !== 'Ident' && t.type !== 'Index') throw this.err(tk, `Can't use ${tk.v} here`, `<code>${tk.v}</code> changes a variable, but <code>${escapeHtml(src(t))}</code> isn't a variable.`, `Use it on a variable, like <code>score${tk.v}</code>.`);
@@ -724,9 +947,20 @@ class Parser {
         if (e.type !== 'Ident') throw this.err(tk, 'Can\'t call that', `<code>${escapeHtml(src(e))}</code> isn't a function, so you can't put <code>( )</code> after it.`, 'Only function names can be called, like <code>sqrt(9)</code>.');
         this.next(); e = { type: 'Call', name: e.name, args: this.parseArgs(')'), line: tk.line };
       } else if (tk.v === '[') {
-        this.next(); this.skipNL(); const idx = this.parseExpr(); this.skipNL(); this.expectOp(']');
+        this.next(); this.skipNL();
+        let idx = null;
+        if (!this.isOp(':')) idx = this.parseExpr();
+        this.skipNL();
+        if (this.match('op', ':')) {
+          const end = this.isOp(']') ? null : this.parseExpr();
+          this.expectOp(']');
+          e = { type: 'Slice', obj: e, start: idx, end, line: tk.line };
+          continue;
+        }
+        this.expectOp(']');
         e = { type: 'Index', obj: e, idx, line: tk.line };
-      } else if (tk.v === '.' || tk.v === '->') {
+      } else if (tk.v === '.' || tk.v === '->' || (tk.v === '?' && this.isOp('.', 1))) {
+        if (tk.v === '?') this.next();
         this.next();
         const m = this.peek();
         if (m.t !== 'id') throw this.err(m, 'Expected a method name', 'After a dot <code>.</code> I expected a method name, like <code>.length()</code>.', 'Write something like <code>name.upper()</code>.');
@@ -737,6 +971,8 @@ class Parser {
       } else if (tk.v === '++' || tk.v === '--') {
         this.checkTarget(e, tk); this.next();
         e = { type: 'Inc', op: tk.v, prefix: false, target: e, line: tk.line };
+      } else if (tk.v === '!' && (this.lang === 'swift' || this.lang === 'cs') && !['id', 'num', 'str', 'tmpl'].includes(this.peek(1).t) && !this.isOp('(', 1)) {
+        this.next(); e = { type: 'Unwrap', expr: e, line: tk.line };
       } else break;
     }
     return e;
@@ -744,8 +980,13 @@ class Parser {
   parseArgs(close) {
     const args = []; this.skipNL();
     if (this.isOp(close)) { this.next(); return args; }
+    const labels = close === ')' && ['py', 'swift', 'cs'].includes(this.lang);
     for (;;) {
-      this.skipNL(); args.push(this.parseExpr()); this.skipNL();
+      this.skipNL();
+      let label = null;
+      if (labels && this.peek().t === 'id' && ((this.lang === 'py' && this.isOp('=', 1)) || (this.lang !== 'py' && this.isOp(':', 1)))) { label = this.next().v; this.next(); }
+      const a = this.parseExpr(); if (label) a.label = label;
+      args.push(a); this.skipNL();
       if (this.match('op', ',')) continue;
       this.expectOp(close, close === ')' ? 'to finish the list of inputs' : 'to finish the list');
       break;
@@ -754,18 +995,38 @@ class Parser {
   }
   parsePrimary() {
     const tk = this.peek();
-    if (tk.t === 'num') { this.next(); return { type: 'Num', value: tk.v, line: tk.line }; }
+    if (tk.t === 'num') { this.next(); return { type: 'Num', value: tk.v, base: tk.base, text: tk.text, line: tk.line }; }
     if (tk.t === 'str') { this.next(); return { type: 'Str', value: tk.v, quote: tk.quote, line: tk.line }; }
+    if (tk.t === 'tmpl') {
+      this.next();
+      const parts = tk.v.map(p => {
+        if (typeof p === 'string') return p;
+        if (!p.code.trim()) throw new SimplyError(p.line, 'Empty { } inside text', 'There\'s an empty placeholder inside your text.', 'Put a variable inside it, like <code>{name}</code>.');
+        const sub = new Parser(lex(p.code, this.lang === 'py' ? 'js' : this.lang, p.line), this.lang);
+        const e = sub.parseExpr();
+        if (!sub.is('eof') && !sub.is('nl')) throw new SimplyError(p.line, 'Something odd inside { }', `I couldn't understand <code>${escapeHtml(p.code)}</code> inside your text.`, 'Put just one variable or calculation inside, like <code>{age + 1}</code>.');
+        e.spec = p.spec; return e;
+      });
+      return { type: 'Tmpl', parts, quote: tk.quote, line: tk.line };
+    }
     if (tk.t === 'id') {
-      if (tk.v === 'true' || tk.v === 'false') { this.next(); return { type: 'Bool', value: tk.v === 'true', line: tk.line }; }
+      if (['true', 'false', 'True', 'False'].includes(tk.v)) { this.next(); return { type: 'Bool', value: tk.v.toLowerCase() === 'true', word: tk.v, line: tk.line }; }
+      if (['None', 'null', 'nil', 'undefined', 'nullptr', 'NULL'].includes(tk.v)) { this.next(); return { type: 'Null', word: tk.v, line: tk.line }; }
       if (tk.v === 'endl') { this.next(); return { type: 'Str', value: '\n', endl: true, line: tk.line }; }
+      if (tk.v === 'new') return this.parseNew();
+      if (tk.v === 'lambda') throw this.err(tk, 'lambda isn\'t supported yet', 'One-line <code>lambda</code> functions are an advanced feature.', 'Use a normal <code>def</code> function instead.');
       if (tk.v === 'cout' || tk.v === 'cin' || tk.v === 'print' || tk.v === 'scan')
-        throw this.err(tk, `${tk.v} must start the line`, `<code>${tk.v}</code> is an instruction, so it goes at the start of its own line — it can't be used in the middle of a calculation.`, `Put it on its own line, like <code>${tk.v === 'cin' ? 'cin x' : 'cout "hi"'}</code>.`);
-      if (RESERVED.has(tk.v)) throw this.err(tk, `"${tk.v}" can't go here`, `<code>${tk.v}</code> is a special word in Simply C++ and can't be used in the middle of a calculation.`, `If <code>${tk.v}</code> is supposed to be text, put it in quotes: <code>"${tk.v}"</code>.`);
+        throw this.err(tk, `${tk.v} must start the line`, `<code>${tk.v}</code> is an instruction, so it goes at the start of its own line — it can't be used in the middle of a calculation.`, `Put it on its own line, like <code>${tk.v === 'cin' ? 'cin x' : tk.v === 'scan' ? 'scan x' : tk.v + ' "hi"'}</code>.`);
+      if (RESERVED.has(tk.v)) throw this.err(tk, `"${tk.v}" can't go here`, `<code>${tk.v}</code> is a special word and can't be used in the middle of a calculation.`, `If <code>${tk.v}</code> is supposed to be text, put it in quotes: <code>"${tk.v}"</code>.`);
       this.next(); return { type: 'Ident', name: tk.v, line: tk.line };
     }
     if (tk.t === 'op' && tk.v === '(') {
-      this.next(); this.skipNL(); const e = this.parseExpr(); this.skipNL(); this.expectOp(')');
+      this.next(); this.skipNL(); const e = this.parseExpr(); this.skipNL();
+      if (this.isOp(',')) { // Python tuple → list
+        const items = [e]; while (this.match('op', ',')) { this.skipNL(); if (this.isOp(')')) break; items.push(this.parseExpr()); this.skipNL(); }
+        this.expectOp(')'); return { type: 'List', items, line: tk.line };
+      }
+      this.expectOp(')');
       return { ...e, paren: true };
     }
     if (tk.t === 'op' && (tk.v === '[' || tk.v === '{')) {
@@ -774,6 +1035,22 @@ class Parser {
     if (tk.t === 'nl' || tk.t === 'eof' || (tk.t === 'op' && (tk.v === ';' || tk.v === '}' || tk.v === ')')))
       throw this.err(tk, 'Something is missing', `This line stops too early — I expected a value (a number, some <code>"text"</code>, or a variable) but found ${this.desc(tk)}.`, 'Finish the line. If you have a <code>+</code> or <code>=</code> at the end, add what comes after it.');
     throw this.err(tk, `Didn't expect ${tk.t === 'op' ? '"' + tk.v + '"' : 'that'} here`, `I expected a value (a number, some <code>"text"</code>, or a variable) but found ${this.desc(tk)}.`, tk.v === '<<' ? 'Did you forget <code>cout</code> at the start?' : 'Check this spot for a typo or a missing value.');
+  }
+  parseNew() { // C# / JS: new List<int>(), new int[5], new Random(), new[] { 1, 2 }
+    const tk = this.next();
+    let typeName = null, elem = 'auto';
+    if (this.peek().t === 'id') { typeName = this.next().v; elem = ANNOT_TYPES[typeName] || TYPE_WORDS[typeName] || 'auto'; }
+    if (this.isOp('<')) this.skipGenerics();
+    let size = null, isArray = false;
+    if (this.isOp('[')) { this.next(); isArray = true; if (!this.isOp(']')) size = this.parseExpr(); this.expectOp(']'); }
+    let args = [];
+    if (this.isOp('(')) { this.next(); args = this.parseArgs(')'); }
+    this.skipNL();
+    if (this.isOp('{')) { this.next(); return { type: 'List', items: this.parseArgs('}'), line: tk.line }; }
+    if (typeName === 'Random') return { type: 'NewRandom', line: tk.line };
+    if (isArray || ['List', 'Array', 'ArrayList', 'Vector', 'vector'].includes(typeName)) return { type: 'NewList', size, elem: isArray ? elem : 'auto', args, line: tk.line };
+    if (['String', 'string', 'StringBuilder'].includes(typeName)) return args[0] || { type: 'Str', value: '', line: tk.line };
+    throw this.err(tk, `I can't make a "new ${typeName || ''}"`, `<code>new ${escapeHtml(typeName || '')}</code> makes an object, and making your own objects isn't supported in the Simple languages yet.`, 'You can use <code>new List&lt;int&gt;()</code>, <code>new int[5]</code> or <code>new Random()</code>.');
   }
 }
 
@@ -784,9 +1061,13 @@ function kind(v) {
   if (typeof v === 'string') return 'text';
   if (typeof v === 'boolean') return 'bool';
   if (Array.isArray(v)) return 'list';
+  if (v instanceof RandomObj) return 'object';
   return 'nothing';
 }
-const KIND_WORD = { number: 'a number', text: 'text', bool: 'true/false', list: 'a list', nothing: 'nothing' };
+class RandomObj {}
+let RUN_LANG = 'cpp';
+const KIND_WORD = { number: 'a number', text: 'text', bool: 'true/false', list: 'a list', nothing: 'nothing', object: 'a Random object' };
+const NULL_WORD = { py: 'None', js: 'null', swift: 'nil', cs: 'null' };
 function fmtNum(n) {
   if (!isFinite(n)) return n > 0 ? 'infinity' : n < 0 ? '-infinity' : 'not-a-number';
   if (Number.isInteger(n)) return String(n);
@@ -795,10 +1076,11 @@ function fmtNum(n) {
 function fmt(v, inList) {
   switch (kind(v)) {
     case 'number': return fmtNum(v);
-    case 'text': return inList ? JSON.stringify(v) : v;
-    case 'bool': return v ? 'true' : 'false';
+    case 'text': return inList ? (RUN_LANG === 'py' ? "'" + v.replace(/'/g, "\\'") + "'" : JSON.stringify(v)) : v;
+    case 'bool': return (RUN_LANG === 'py' || RUN_LANG === 'cs') ? (v ? 'True' : 'False') : (v ? 'true' : 'false');
     case 'list': return '[' + v.map(x => fmt(x, true)).join(', ') + ']';
-    default: return 'nothing';
+    case 'object': return 'Random';
+    default: return NULL_WORD[RUN_LANG] || 'nothing';
   }
 }
 function show(v) { // for explanations
@@ -813,8 +1095,15 @@ function src(n) {
   switch (n.type) {
     case 'Num': s = fmtNum(n.value); break;
     case 'Str': s = n.endl ? 'endl' : (n.quote === "'" ? "'" + n.value.replace(/\n/g, '\\n') + "'" : JSON.stringify(n.value)); break;
-    case 'Bool': s = String(n.value); break;
+    case 'Bool': s = n.word || String(n.value); break;
+    case 'Null': s = n.word; break;
     case 'Ident': s = n.name; break;
+    case 'Tmpl': s = (n.quote === '`' ? '`' : RUN_LANG === 'py' ? 'f"' : RUN_LANG === 'cs' ? '$"' : '"') + n.parts.map(p => typeof p === 'string' ? p.replace(/\n/g, '\\n') : (n.quote === '`' ? '${' + src(p) + '}' : RUN_LANG === 'swift' ? '\\(' + src(p) + ')' : '{' + src(p) + '}')).join('') + (n.quote === '`' ? '`' : '"'); break;
+    case 'Range': s = `${src(n.left)}${n.exclusive ? '..<' : '...'}${src(n.right)}`; break;
+    case 'Slice': s = `${src(n.obj)}[${src(n.start)}:${src(n.end)}]`; break;
+    case 'Unwrap': s = src(n.expr) + '!'; break;
+    case 'NewList': s = 'new list'; break;
+    case 'NewRandom': s = 'new Random()'; break;
     case 'Bin': s = `${src(n.left)} ${n.word || n.op} ${src(n.right)}`; break;
     case 'Unary': s = n.word ? 'not ' + src(n.arg) : n.op + src(n.arg); break;
     case 'Call': s = `${n.name}(${n.args.map(src).join(', ')})`; break;
@@ -834,7 +1123,8 @@ function src(n) {
 function identsIn(n, out = new Set()) {
   if (!n || typeof n !== 'object') return out;
   if (n.type === 'Ident') out.add(n.name);
-  for (const k of ['left', 'right', 'arg', 'obj', 'idx', 'c', 'a', 'b', 'target', 'value']) if (n[k]) identsIn(n[k], out);
+  for (const k of ['left', 'right', 'arg', 'obj', 'idx', 'c', 'a', 'b', 'target', 'value', 'expr', 'start', 'end']) if (n[k]) identsIn(n[k], out);
+  if (n.parts) n.parts.forEach(a => identsIn(a, out));
   if (n.args) n.args.forEach(a => identsIn(a, out));
   if (n.items) n.items.forEach(a => identsIn(a, out));
   return out;
@@ -854,6 +1144,43 @@ function closest(name, list) {
   return bd <= (name.length <= 3 ? 1 : name.length <= 7 ? 2 : 3) ? best : null;
 }
 const c = s => `<code>${escapeHtml(s)}</code>`;
+
+const NOT_NS = Symbol('not-ns');
+function explainBits(n) {
+  n = n | 0; if (n < 0) return `${n} is negative; computers store it in "two's complement".`;
+  if (n === 0) return '0 → all bits are off.';
+  const b = n.toString(2); const parts = [];
+  for (let i = 0; i < b.length; i++) if (b[i] === '1') parts.push(String(2 ** (b.length - 1 - i)));
+  return `${b.split('').map((d, i) => `${d}×${2 ** (b.length - 1 - i)}`).join(' + ')} = ${parts.join(' + ')} = <b>${n}</b>`;
+}
+function explainBitsShort(n) { return '<code>' + ((n | 0) >>> 0).toString(2).slice(-8).padStart(8, '0') + '</code>'; }
+function explainBitOp(op, a, b, r) {
+  const name = { '&': 'AND (1 only where BOTH are 1)', '|': 'OR (1 where EITHER is 1)', '^': 'XOR (1 where they are DIFFERENT)', '<<': `shift left by ${b} (each step doubles)`, '>>': `shift right by ${b} (each step halves)` }[op];
+  if (op === '<<' || op === '>>') return `🔀 ${name}: ${a} = ${explainBitsShort(a)} → ${explainBitsShort(r)} = <b>${r}</b>`;
+  const w = Math.max(4, ((a | b | r) >>> 0).toString(2).length);
+  const f = n => ((n >>> 0).toString(2)).slice(-w).padStart(w, '0');
+  return `🔀 Bitwise ${name}:<br><code>&nbsp;&nbsp;${f(a)}</code> (${a})<br><code>${escapeHtml(op)} ${f(b)}</code> (${b})<br><code>= ${f(r)}</code> (<b>${r}</b>)`;
+}
+function fmtSpec(v, spec, node, it) {
+  const m = /^([<>^]?)(\d*)(?:\.(\d+))?([fdse%]?)$/.exec(spec);
+  if (!m) return fmt(v);
+  let out;
+  if (m[4] === '%') out = (Number(v) * 100).toFixed(m[3] ? +m[3] : 0) + '%';
+  else if (m[3] != null && typeof v === 'number') out = v.toFixed(+m[3]);
+  else if (m[4] === 'd' && typeof v === 'number') out = String(Math.trunc(v));
+  else out = fmt(v);
+  const w = +m[2] || 0;
+  if (out.length < w) out = m[1] === '<' ? out.padEnd(w) : m[1] === '^' ? out.padStart(Math.floor((w + out.length) / 2)).padEnd(w) : (typeof v === 'number' || m[1] === '>' ? out.padStart(w) : out.padEnd(w));
+  return out;
+}
+function LANG_NAME(l) { return (typeof LANGS !== 'undefined' && LANGS[l]) ? LANGS[l].name : l; }
+function LANG_REAL() { return { cpp: 'C++', c: 'C', py: 'Python', js: 'JavaScript', cs: 'C#', swift: 'Swift', binary: 'C' }[RUN_LANG] || 'code'; }
+function DECL_WORD() { return { cpp: 'auto ', c: 'int ', py: '', js: 'let ', cs: 'var ', swift: 'var ', binary: 'int ' }[RUN_LANG] ?? 'auto '; }
+function LANG_HINT(l, what) {
+  const h = { print: { py: '<code>print("hi")</code>', js: '<code>console.log("hi")</code> or <code>print "hi"</code>', cs: '<code>Console.WriteLine("hi")</code> or <code>print "hi"</code>', swift: '<code>print("hi")</code>', c: '<code>print "hi"</code> or <code>printf("hi\\n")</code>', binary: '<code>print "hi"</code>' },
+    input: { py: '<code>name = input("Name? ")</code>', js: '<code>let name = prompt("Name?")</code>', cs: '<code>string name = Console.ReadLine();</code>', swift: '<code>let name = readLine()</code>', c: '<code>scan age</code> or <code>scanf("%d", &amp;age)</code>', binary: '<code>scan x</code>' } };
+  return (h[what] && h[what][l]) || '<code>print "hi"</code>';
+}
 
 class Scope {
   constructor(parent) { this.vars = new Map(); this.parent = parent; }
@@ -882,6 +1209,7 @@ class Interp {
 
   *run() {
     for (const s of this.ast) if (s.type === 'Func') this.defineFunc(s, true);
+    if (RUN_LANG === 'py') this.global.vars.set('__name__', { value: '__main__', type: 'string' });
     let ended = false;
     try { yield* this.execList(this.ast, this.global); }
     catch (e) {
@@ -890,10 +1218,10 @@ class Interp {
       else if (e instanceof BreakSig || e instanceof ContinueSig) throw this.error(this.sigLine, `"${e instanceof BreakSig ? 'break' : 'continue'}" outside a loop`, `<code>${e instanceof BreakSig ? 'break' : 'continue'}</code> only makes sense inside a loop (<code>while</code>, <code>for</code>, <code>repeat</code>).`, 'Move it inside a loop, or delete it.');
       else throw e;
     }
-    const main = this.funcs.get('main');
+    const main = ['cpp', 'c', 'cs', 'binary'].includes(RUN_LANG) ? (this.funcs.get('main') || this.funcs.get('Main')) : null;
     if (!ended && main && !this.mainCalled) {
-      this.ex('main', main.line, () => `🚪 Running <code>main()</code> now. In real C++ every program must start in main — in Simply C++ it's optional, you can write code at the top level.`);
-      try { yield* this.callUser(main, [], main); } catch (e) { if (!(e instanceof ExitSig)) throw e; }
+      this.ex('main', main.line, () => `🚪 Running <code>${main.name}()</code> now. In real ${LANG_REAL()} every program must start in ${main.name} — in ${L().name} it's optional, you can write code at the top level.`);
+      try { yield* this.callUser(main, main.params.filter(p => !p.def).map(() => []), main); } catch (e) { if (!(e instanceof ExitSig)) throw e; }
     }
   }
   defineFunc(node, hoisted) {
@@ -917,10 +1245,16 @@ class Interp {
     if (this.steps % 4000 === 0) yield { tick: true };
     switch (node.type) {
       case 'Directive':
-        this.ex(node, node.line, () => `ℹ️ ${c(node.text)} — you don't need <code>#include</code> in Simply C++. cout, cin, strings, lists and math are all built in, so I skipped this line.`);
+        this.ex(node, node.line, () => `ℹ️ ${c(node.text)} — you don't need this line in ${L().name}. Printing, input, text, lists and math are all built in, so I skipped it.`);
         return;
       case 'Using':
-        this.ex(node, node.line, () => `ℹ️ <code>using namespace std</code> isn't needed — Simply C++ always understands cout, string, etc. Skipped.`);
+        this.ex(node, node.line, () => `ℹ️ ${c(node.text || 'using')} — not needed in ${L().name}: everything is already built in, so I skipped this line.`);
+        return;
+      case 'Pass':
+        this.ex(node, node.line, () => node.note ? `ℹ️ <code>${node.note}</code> isn't needed in ${L().name} — functions can already change outside variables. Skipped.` : `💤 <code>pass</code> means "do nothing here" — it's a placeholder so the block isn't empty.`);
+        return;
+      case 'Note':
+        this.ex(node, node.line, () => `📦 <code>${node.kind} ${escapeHtml(node.name)}</code> — real ${LANG_REAL()} needs your code wrapped in a ${node.kind}. ${L().name} doesn't, so I just look inside it.`);
         return;
       case 'Func':
         if (scope !== this.global) this.defineFunc(node, false);
@@ -936,7 +1270,7 @@ class Interp {
       case 'If': {
         const cv = yield* this.eval(node.cond, scope);
         const b = this.truthy(cv, node.cond);
-        this.ex(node, node.line, () => `🤔 Checked ${c(src(node.cond))}${this.whereVars(node.cond, scope)} → <b>${b}</b>. ${b ? 'So I ran the "if" part.' : node.elseBody ? 'So I skipped to the "else" part.' : 'So I skipped that block.'}`);
+        this.ex(node, node.line, () => `🤔 Checked ${c(src(node.cond))}${this.whereVars(node.cond, scope)} → <b>${fmt(b)}</b>. ${b ? 'So I ran the "if" part.' : node.elseBody ? 'So I skipped to the "else" part.' : 'So I skipped that block.'}`);
         if (b) yield* this.loopBody(node.body, scope, node);
         else if (node.elseBody) yield* this.loopBody(node.elseBody, scope);
         return;
@@ -946,8 +1280,8 @@ class Interp {
         for (;;) {
           if (!first) {
             const b = this.truthy(yield* this.eval(node.cond, scope), node.cond);
-            if (!b) { this.ex(node.cond, node.line, () => `🏁 ${c(src(node.cond))}${this.whereVars(node.cond, scope)} is now <b>false</b> → the loop is done (it ran ${rounds} time${rounds === 1 ? '' : 's'}).`); break; }
-            this.ex(node, node.line, () => `🔁 ${c(src(node.cond))}${this.whereVars(node.cond, scope)} is <b>true</b> → going around the loop.`);
+            if (!b) { this.ex(node.cond, node.line, () => `🏁 ${c(src(node.cond))}${this.whereVars(node.cond, scope)} is now <b>${fmt(false)}</b> → the loop is done (it ran ${rounds} time${rounds === 1 ? '' : 's'}).`); break; }
+            this.ex(node, node.line, () => `🔁 ${c(src(node.cond))}${this.whereVars(node.cond, scope)} is <b>${fmt(true)}</b> → going around the loop.`);
           }
           first = false; rounds++;
           try { yield* this.loopBody(node.body, scope, node); }
@@ -963,7 +1297,7 @@ class Interp {
         for (;;) {
           if (node.cond) {
             const b = this.truthy(yield* this.eval(node.cond, fs), node.cond);
-            if (!b) { this.ex(node.cond, node.line, () => `🏁 ${c(src(node.cond))}${this.whereVars(node.cond, fs)} is now <b>false</b> → loop done after ${rounds} round${rounds === 1 ? '' : 's'}.`); break; }
+            if (!b) { this.ex(node.cond, node.line, () => `🏁 ${c(src(node.cond))}${this.whereVars(node.cond, fs)} is now <b>${fmt(false)}</b> → loop done after ${rounds} round${rounds === 1 ? '' : 's'}.`); break; }
           }
           rounds++;
           try { yield* this.loopBody(node.body, fs, node); }
@@ -1034,8 +1368,8 @@ class Interp {
   }
 
   *execDecl(node, scope) {
-    const t = node.varType;
     for (const it of node.items) {
+      const t = it.t || node.varType;
       if (scope.vars.has(it.name)) {
         throw this.error(it.line, `"${it.name}" already exists`, `You already made a box called ${c(it.name)}${scope.vars.get(it.name).line ? ' on line ' + scope.vars.get(it.name).line : ''}. Writing the type again (${c(t)}) tries to make a brand new one.`,
           `To change it, leave off the type: <code>${escapeHtml(it.name)} = ${it.init ? escapeHtml(src(it.init)) : '...'}</code>`);
@@ -1059,10 +1393,11 @@ class Interp {
       }
       if (v === null && it.init) throw this.error(it.line, 'Nothing to store', `${c(src(it.init))} doesn't give back any value, so there's nothing to put in ${c(it.name)}.`, 'Make sure the function ends with <code>return something</code>.');
       v = this.coerce(storeType, deepCopy(v), it.name, it.line);
+      if (it.init && it.init.type === 'NewList' && it.init.elem === 'auto' && v.length === 0 && storeType === 'auto') storeType = 'list';
       scope.vars.set(it.name, { value: v, type: storeType, isConst: node.isConst, line: it.line });
       const tdesc = storeType === 'auto' ? `auto (I figured out it's ${KIND_WORD[kind(v)]})` : TYPE_DESC[storeType];
       this.ex(it, it.line, () => it.init || it.size
-        ? `📦 Made a${node.isConst ? ' locked (const)' : ''} box called ${c(it.name)} — type ${tdesc} — and put ${show(v)} in it.`
+        ? `📦 Made a${node.isConst ? ' locked (' + (RUN_LANG === 'swift' ? 'let' : 'const') + ')' : ''} box called ${c(it.name)} — type ${tdesc} — and put ${show(v)} in it.`
         : `📦 Made a box called ${c(it.name)} — type ${tdesc}. It starts out as ${show(v)}.`);
     }
   }
@@ -1072,19 +1407,24 @@ class Interp {
     let text = '', joinNote = false;
     this.inPrint++;
     try {
-      const vals = [];
+      const vals = []; let sep = ' ', end = '\n';
       for (const p of node.parts) {
+        if (p.label && ['sep', 'separator', 'end', 'terminator', 'flush', 'file'].includes(p.label)) {
+          const lv = yield* this.eval(p, scope);
+          if (p.label === 'sep' || p.label === 'separator') sep = fmt(lv); else if (p.label === 'end' || p.label === 'terminator') end = fmt(lv);
+          continue;
+        }
         const v = yield* this.eval(p, scope);
         if (v === null && p.type === 'Call') throw this.error(node.line, 'Nothing to print', `${c(src(p))} doesn't give back a value, so there's nothing to print.`, 'Make sure that function ends with <code>return something</code>, or call it on its own line.');
         if (p.type === 'Bin' && p.op === '+' && typeof v === 'string') joinNote = true;
         vals.push(v);
       }
-      text = node.mode === 'line' ? vals.map(v => fmt(v)).join(' ') + '\n' : vals.map(v => fmt(v)).join('');
+      text = node.mode === 'line' ? vals.map(v => fmt(v)).join(sep) + end : vals.map(v => fmt(v)).join('');
     } finally { this.inPrint--; }
     this.io.out(text);
     this.ex(node, node.line, () => {
       const shown = text.replace(/\n$/, '');
-      if (node.mode === 'line') return `🖨️ Printed ${show(shown)}${joinNote ? ' — the <b>+</b> glued the pieces into one piece of text' : ''}${node.parts.length > 1 ? ' — the commas put spaces between the pieces' : ''}.`;
+      if (node.mode === 'line') return `🖨️ Printed ${show(shown)}${joinNote ? ' — the <b>+</b> glued the pieces into one piece of text' : ''}${node.parts.filter(p => !p.label).length > 1 ? ' — the commas put spaces between the pieces' : ''}${text.endsWith('\n') ? '' : ' (no new line at the end, so the next output continues on the same line)'}.`;
       return `🖨️ <code>cout &lt;&lt;</code> sent ${show(text)} to the screen${text.endsWith('\n') ? ' (endl = new line)' : ' — no <code>endl</code>, so the next output continues on the same line'}. Shortcut: <code>cout ${escapeHtml(node.parts.filter(p => !p.endl).map(src).join(' + ') || '""')}</code>`;
     });
   }
@@ -1193,7 +1533,47 @@ class Interp {
 
   *eval(node, scope) {
     switch (node.type) {
-      case 'Num': case 'Str': case 'Bool': return node.value;
+      case 'Num':
+        if (node.base && node.base !== 'dec') this.ex(node, node.line, () => node.base === 'bin' ? `🔢 ${c(node.text)} is a <b>binary</b> number: ${explainBits(node.value)}` : `🔢 ${c(node.text)} is a ${node.base === 'hex' ? 'hexadecimal (base 16)' : 'octal (base 8)'} number = ${node.value} in normal numbers.`);
+        return node.value;
+      case 'Str': case 'Bool': return node.value;
+      case 'Null': return null;
+      case 'Tmpl': {
+        let out = '';
+        for (const p of node.parts) {
+          if (typeof p === 'string') { out += p; continue; }
+          const v = yield* this.eval(p, scope);
+          out += p.spec ? fmtSpec(v, p.spec, p, this) : fmt(v);
+        }
+        this.ex(node, node.line, () => `🧵 Filled in the blanks in the text → ${show(out)}`);
+        return out;
+      }
+      case 'Range': {
+        const a = this.needNum(yield* this.eval(node.left, scope), node.left, 'the start of the range');
+        const b = this.needNum(yield* this.eval(node.right, scope), node.right, 'the end of the range');
+        const out = []; for (let v = a; node.exclusive ? v < b : v <= b; v++) { out.push(v); if (out.length > 1e6) break; }
+        return out;
+      }
+      case 'Slice': {
+        const obj = yield* this.eval(node.obj, scope);
+        if (!Array.isArray(obj) && typeof obj !== 'string') throw this.error(node.line, 'Can\'t slice that', `${c(src(node.obj))} is ${KIND_WORD[kind(obj)]}. Slices like <code>[1:3]</code> only work on lists and text.`, '');
+        let a = node.start ? yield* this.eval(node.start, scope) : 0, b = node.end ? yield* this.eval(node.end, scope) : obj.length;
+        const r = obj.slice(a, b);
+        this.ex(node, node.line, () => `✂️ ${c(src(node))} takes spots ${a} up to (not including) ${b < 0 ? obj.length + b : b} → ${show(r)}`);
+        return r;
+      }
+      case 'Unwrap': {
+        const v = yield* this.eval(node.expr, scope);
+        this.ex(node, node.line, () => `❗ The <code>!</code> after ${c(src(node.expr))} "unwraps" it in real ${LANG_REAL()}. ${L().name} doesn't need it, so it's ignored.`);
+        if (v === null) throw this.error(node.line, 'Nothing to unwrap', `${c(src(node.expr))} is empty (${fmt(null)}), so <code>!</code> would crash a real program.`, 'Check it has a value first.');
+        return v;
+      }
+      case 'NewRandom': return new RandomObj();
+      case 'NewList': {
+        if (node.size) { const n = yield* this.eval(node.size, scope); return Array.from({ length: n }, () => this.defaultFor(node.elem)); }
+        if (node.args && node.args.length) { const v = yield* this.eval(node.args[0], scope); if (Array.isArray(v)) return deepCopy(v); }
+        return [];
+      }
       case 'List': { const arr = []; for (const e of node.items) arr.push(deepCopy(yield* this.eval(e, scope))); return arr; }
       case 'Ident': {
         const rec = scope.find(node.name);
@@ -1206,10 +1586,12 @@ class Interp {
       case 'Unary': {
         const v = yield* this.eval(node.arg, scope);
         if (node.op === '!') return !this.truthy(v, node.arg);
+        if (node.op === '~') { const n = this.needNum(v, node.arg, '<code>~</code>'); const r = ~n; this.ex(node, node.line, () => `🔀 <code>~</code> flips every bit of ${n}: ${explainBitsShort(n)} → ${r}`); return r; }
         const n = this.needNum(v, node.arg, `<code>${node.op}</code>`);
         return node.op === '-' ? -n : n;
       }
       case 'Bin': {
+        if (node.op === '??') { const l = yield* this.eval(node.left, scope); return l !== null ? l : yield* this.eval(node.right, scope); }
         if (node.op === '&&') { const l = yield* this.eval(node.left, scope); if (!this.truthy(l)) return false; return this.truthy(yield* this.eval(node.right, scope)); }
         if (node.op === '||') { const l = yield* this.eval(node.left, scope); if (this.truthy(l)) return true; return this.truthy(yield* this.eval(node.right, scope)); }
         const l = yield* this.eval(node.left, scope);
@@ -1239,6 +1621,10 @@ class Interp {
         return obj[this.checkIndex(obj, idx, node)];
       }
       case 'Method': {
+        if (node.obj.type === 'Ident' && !scope.find(node.obj.name)) {
+          const r = yield* this.nsCall(node, scope);
+          if (r !== NOT_NS) return r;
+        }
         const obj = yield* this.eval(node.obj, scope);
         const args = [];
         for (const a of node.args || []) args.push(yield* this.eval(a, scope));
@@ -1254,7 +1640,7 @@ class Interp {
     const what = typeof obj === 'string' ? 'letters' : 'items';
     if (typeof idx !== 'number' || !Number.isInteger(idx)) throw this.error(node.line, 'Spot number must be a whole number', `Inside <code>[ ]</code> I need a whole number like 0, 1, 2… but got ${escapeHtml(show(idx))}.`, kind(idx) === 'text' ? `If it's a number stored as text, use ${c('toInt(...)')}.` : 'Use a whole number.');
     let i = idx;
-    if (i < 0 && -i <= obj.length) { i = obj.length + i; this.ex('neg' + node.line, node.line, () => `🔙 Negative spots count from the end: [${idx}] means spot ${i}. (Real C++ can't do this!)`); }
+    if (i < 0 && -i <= obj.length) { i = obj.length + i; this.ex('neg' + node.line, node.line, () => `🔙 Negative spots count from the end: [${idx}] means spot ${i}.${RUN_LANG === 'py' ? '' : ' (Real C++ can\'t do this!)'}`); }
     if (i < 0 || i >= obj.length) {
       const nm = src(node.obj);
       throw this.error(node.line, 'That spot doesn\'t exist', obj.length === 0 ? `${c(nm)} is empty (0 ${what}), so there's no spot ${idx}.` : `${c(nm)} has ${obj.length} ${what}, so the spots go from 0 to ${obj.length - 1}. You asked for spot ${idx}.`,
@@ -1271,11 +1657,11 @@ class Interp {
         if (this.funcs.has(name)) throw this.error(node.line, `"${name}" is a function`, `${c(name)} is the name of a function, so you can't store a value in it.`, 'Pick a different name for your variable.');
         const best = closest(name, scope.names());
         scope.vars.set(name, { value: deepCopy(v), type: 'auto', line: node.line });
-        if (best) this.io.warn(node.line, `💡 Line ${node.line}: "${name}" didn't exist, so I made a new box. Did you mean "${best}"?`);
-        this.ex('auto' + node.line + name, node.line, () => `📦 ${c(name)} didn't exist yet, so I made it for you and put ${show(v)} in it. (Real C++ would need ${c('auto ' + name + ' = ...')}.)`);
+        if (best && !(RUN_LANG === 'py' && (name.length < 4 || lev(name, best) > 1))) this.io.warn(node.line, `💡 Line ${node.line}: "${name}" didn't exist, so I made a new box. Did you mean "${best}"?`);
+        this.ex('auto' + node.line + name, node.line, () => RUN_LANG === 'py' ? `📦 Made a box called ${c(name)} and put ${show(v)} in it.` : `📦 ${c(name)} didn't exist yet, so I made it for you and put ${show(v)} in it. (Real ${LANG_REAL()} would need ${c(DECL_WORD() + name + ' = ...')}.)`);
         return;
       }
-      if (rec.isConst) throw this.error(node.line, `"${name}" is locked`, `${c(name)} was made with <code>const</code>, which means it can never change.`, `Remove <code>const</code> where ${c(name)} is created if it needs to change.`);
+      if (rec.isConst) throw this.error(node.line, `"${name}" is locked`, `${c(name)} was made with <code>${RUN_LANG === 'swift' ? 'let' : 'const'}</code>, which means it can never change.`, RUN_LANG === 'swift' ? `Make it with <code>var</code> instead of <code>let</code> if it needs to change.` : `Remove <code>const</code> where ${c(name)} is created if it needs to change.`);
       const old = rec.value;
       rec.value = this.coerce(rec.type, deepCopy(v), name, node.line);
       if (!quiet) this.ex(node, node.line, () => `✏️ ${c(name)} changed from ${show(old)} to ${show(rec.value)}.`);
@@ -1304,6 +1690,7 @@ class Interp {
   binop(op, l, r, node) {
     const kl = kind(l), kr = kind(r);
     const L = src(node.left || node.target), R = src(node.right || node.value);
+    if ((op === '==' || op === '!=') && (kl === 'nothing' || kr === 'nothing')) return op === '==' ? kl === kr : kl !== kr;
     if (kl === 'nothing' || kr === 'nothing') throw this.error(node.line, 'Using an empty value', `${c(kl === 'nothing' ? L : R)} is empty (it holds nothing yet), so I can't use it with <code>${escapeHtml(op)}</code>.`, 'Give it a value first.');
     const num = x => typeof x === 'boolean' ? (x ? 1 : 0) : x;
     const bothNum = (kl === 'number' || kl === 'bool') && (kr === 'number' || kr === 'bool');
@@ -1324,7 +1711,7 @@ class Interp {
         if ((kl === 'text' || kl === 'list') && kr === 'number' || kl === 'number' && (kr === 'text' || kr === 'list')) {
           const [s, n] = kl === 'number' ? [r, l] : [l, r];
           if (!Number.isInteger(n) || n < 0) throw this.error(node.line, 'Repeat count must be a whole number', `To repeat ${KIND_WORD[kind(s)]} you multiply by a whole number (0 or more), but got ${fmtNum(n)}.`, `Like ${c('"ha" * 3')}.`);
-          this.ex('rep' + node.line, node.line, () => `✖️ ${c(L + ' * ' + R)} repeats ${typeof s === 'string' ? 'the text' : 'the list'} ${n} time${n === 1 ? '' : 's'}. (Real C++ can't do this!)`);
+          this.ex('rep' + node.line, node.line, () => `✖️ ${c(L + ' * ' + R)} repeats ${typeof s === 'string' ? 'the text' : 'the list'} ${n} time${n === 1 ? '' : 's'}.${RUN_LANG === 'py' ? '' : ' (Real C++ can\'t do this!)'}`);
           return typeof s === 'string' ? s.repeat(n) : Array.from({ length: n }, () => deepCopy(s)).flat();
         }
         mathOnly('multiply');
@@ -1333,7 +1720,7 @@ class Interp {
         if (num(r) === 0) throw this.error(node.line, 'Dividing by zero', `${c(L + ' / ' + R)} tries to divide by 0. Nobody can split something into 0 groups — not even a computer!`, node.right && node.right.type === 'Num' ? 'Divide by a different number.' : `Check that ${c(R)} isn't 0 before dividing, e.g. ${c('if ' + R + ' != 0 { ... }')}.`);
         {
           const res = num(l) / num(r);
-          if (Number.isInteger(num(l)) && Number.isInteger(num(r)) && !Number.isInteger(res))
+          if (Number.isInteger(num(l)) && Number.isInteger(num(r)) && !Number.isInteger(res) && RUN_LANG !== 'py' && RUN_LANG !== 'js')
             this.ex('div' + node.line, node.line, () => `➗ ${c(L + ' / ' + R)} = ${fmtNum(res)}. (In real C++, whole ÷ whole chops off the decimals and gives ${Math.trunc(res)}. Simply C++ gives the true answer — use ${c('floor(...)')} if you want it chopped.)`);
           return res;
         }
@@ -1341,6 +1728,26 @@ class Interp {
         if (!bothNum) mathOnly('get the remainder of');
         if (num(r) === 0) throw this.error(node.line, 'Remainder by zero', `${c(L + ' % ' + R)} asks for the remainder after dividing by 0, which is impossible.`, `Make sure ${c(R)} isn't 0.`);
         return num(l) % num(r);
+      case '**': if (!bothNum) mathOnly('raise to a power'); return Math.pow(num(l), num(r));
+      case '//':
+        if (!bothNum) mathOnly('floor-divide');
+        if (num(r) === 0) throw this.error(node.line, 'Dividing by zero', `${c(L + ' // ' + R)} tries to divide by 0.`, 'Divide by a different number.');
+        this.ex('fdiv' + node.line, node.line, () => `➗ <code>//</code> divides and rounds down: ${c(L + ' // ' + R)} = ${Math.floor(num(l) / num(r))}`);
+        return Math.floor(num(l) / num(r));
+      case 'in': case 'not in': {
+        let res;
+        if (kr === 'text') res = r.includes(fmt(l));
+        else if (kr === 'list') res = r.some(x => this.equal(x, l));
+        else throw this.error(node.line, `Can't look inside that`, `${c(L + ' ' + op + ' ' + R)}: <code>in</code> checks if something is inside a list or text, but ${c(R)} is ${KIND_WORD[kr]}.`, 'Use it like <code>"a" in word</code> or <code>3 in numbers</code>.');
+        return op === 'in' ? res : !res;
+      }
+      case '&': case '|': case '^': case '<<': case '>>': {
+        if (!bothNum) mathOnly('do bit math on');
+        const a = num(l) | 0, b = num(r) | 0;
+        const res = op === '&' ? a & b : op === '|' ? a | b : op === '^' ? a ^ b : op === '<<' ? a << b : a >> b;
+        this.ex('bits' + node.line + op, node.line, () => explainBitOp(op, a, b, res));
+        return res;
+      }
       case '==': return this.equal(l, r);
       case '!=': return !this.equal(l, r);
       case '<': case '>': case '<=': case '>=': {
@@ -1362,7 +1769,9 @@ class Interp {
   }
 
   method(obj, name, args, node) {
-    const k = kind(obj), m = name.toLowerCase(), O = src(node.obj);
+    const k = kind(obj), O = src(node.obj);
+    let m = name.toLowerCase();
+    const labelOf = i => node.args && node.args[i] && node.args[i].label;
     const need = (n, usage) => {
       const ok = Array.isArray(n) ? args.length >= n[0] && args.length <= n[1] : args.length === n;
       if (!ok) throw this.error(node.line, `Wrong number of inputs for .${name}()`, `${c('.' + name + '()')} needs ${Array.isArray(n) ? n[0] + ' to ' + n[1] : n} input${n === 1 ? '' : 's'}, but you gave it ${args.length}.`, `Write it like ${c(usage)}.`);
@@ -1370,7 +1779,12 @@ class Interp {
     const numArg = (v, what) => { if (typeof v !== 'number') throw this.error(node.line, 'Expected a number', `${what} must be a number, but got ${escapeHtml(show(v))}.`, ''); return v; };
     if (k === 'text') {
       const s = obj;
+      m = ({ strip: 'trim', trimmed: 'trim', uppercased: 'upper', lowercased: 'lower', index: 'find', isempty: 'empty', title: 'capitalize', isdigit: 'isnumber', isnumeric: 'isnumber', tochararray: 'letters', charcodeat: 'code', tostring: 'copy' })[m] || m;
+      if (m === 'substring' && RUN_LANG === 'js') m = 'slice';
       switch (m) {
+        case 'copy': return s;
+        case 'join': need(1, '", ".join(items)'); if (!Array.isArray(args[0])) throw this.error(node.line, '.join() needs a list', `${c(O + '.join(...)')} glues the items of a list together, with ${show(s)} between them.`, `Like ${c('", ".join(["a", "b"])')}.`); return args[0].map(x => fmt(x)).join(s);
+        case 'code': return s.charCodeAt(args.length ? args[0] : 0);
         case 'length': case 'size': case 'len': need(0, O + '.length()'); return s.length;
         case 'upper': case 'toupper': case 'touppercase': case 'uppercase': need(0, O + '.upper()'); return s.toUpperCase();
         case 'lower': case 'tolower': case 'tolowercase': case 'lowercase': need(0, O + '.lower()'); return s.toLowerCase();
@@ -1401,6 +1815,11 @@ class Interp {
     }
     if (k === 'list') {
       const a = obj;
+      m = ({ index: 'indexof', joined: 'join', removeall: 'clear', tolist: 'copy', toarray: 'copy', isempty: 'empty', firstindex: 'indexof', append: 'add', push_back: 'add' })[m] || m;
+      if (m === 'remove' && labelOf(0) === 'at') m = 'removeat';
+      if (m === 'pop' && args.length === 1) m = 'removeat';
+      if (m === 'insert' && labelOf(1) === 'at') args = [args[1], args[0]];
+      if (m === 'add' && labelOf(0) === 'contentsOf') m = 'extend';
       const numsOnly = (what) => { if (!a.every(x => typeof x === 'number')) throw this.error(node.line, `Can't ${what} that list`, `${c('.' + name + '()')} only works when every item is a number, but ${c(O)} is ${escapeHtml(show(a))}.`, 'Use a list of numbers.'); };
       const nonEmpty = () => { if (!a.length) throw this.error(node.line, 'The list is empty', `${c(O)} has no items, so ${c('.' + name + '()')} has nothing to give back.`, `Add items first with ${c(O + '.add(x)')}.`); };
       switch (m) {
@@ -1421,6 +1840,14 @@ class Interp {
           if (a.every(x => typeof x === 'number')) a.sort((x, y) => x - y); else a.sort((x, y) => fmt(x) < fmt(y) ? -1 : fmt(x) > fmt(y) ? 1 : 0);
           this.ex(node, node.line, () => `🔢 Sorted ${c(O)} smallest → biggest: ${show(a)}`); return a;
         case 'reverse': need(0, O + '.reverse()'); a.reverse(); return a;
+        case 'extend': case 'concat': case 'addrange': {
+          need(1, O + '.extend(otherList)'); const other = Array.isArray(args[0]) ? args[0] : [args[0]];
+          if (m === 'concat') return a.concat(deepCopy(other));
+          a.push(...deepCopy(other)); this.ex(node, node.line, () => `➕ Added ${other.length} item${other.length === 1 ? '' : 's'} to ${c(O)} → ${show(a)}`); return a;
+        }
+        case 'sorted': need(0, O + '.sorted()'); { const b = a.slice(); if (b.every(x => typeof x === 'number')) b.sort((x, y) => x - y); else b.sort((x, y) => fmt(x) < fmt(y) ? -1 : fmt(x) > fmt(y) ? 1 : 0); return b; }
+        case 'reversed': need(0, O + '.reversed()'); return a.slice().reverse();
+        case 'randomelement': nonEmpty(); return a[Math.floor(Math.random() * a.length)];
         case 'join': need([0, 1], O + '.join(", ")'); return a.map(x => fmt(x)).join(args.length ? fmt(args[0]) : ', ');
         case 'clear': need(0, O + '.clear()'); a.length = 0; return a;
         case 'first': case 'front': need(0, O + '.first()'); nonEmpty(); return a[0];
@@ -1437,6 +1864,16 @@ class Interp {
         case 'slice': need([1, 2], O + '.slice(start, end)'); return a.slice(numArg(args[0], 'start'), args.length > 1 ? numArg(args[1], 'end') : undefined);
       }
       return this.noMethod(name, 'a list', ['add','pop','remove','removeAt','insert','size','count','contains','indexOf','sort','reverse','join','clear','first','last','sum','max','min','average','empty','shuffle','copy','slice'], node);
+    }
+    if (k === 'object') {
+      if (m === 'next') { const lo = args.length === 2 ? numArg(args[0], 'The low number') : 0, hi = numArg(args[args.length - 1], 'The high number'); const v = lo + Math.floor(Math.random() * (hi - lo)); this.ex(node, node.line, () => `🎲 ${c(src(node))} picked a random whole number from ${lo} up to (not including) ${hi}: <b>${v}</b>`); return v; }
+      if (m === 'nextdouble') return Math.random();
+      throw this.error(node.line, `Unknown method .${name}()`, `A Random object only knows ${c('.Next(min, max)')} and ${c('.NextDouble()')}.`, `Like ${c(O + '.Next(1, 7)')} for a dice roll.`);
+    }
+    if (k === 'number') {
+      if (m === 'tostring' || m === 'description') { if (args.length && typeof args[0] === 'string' && /^[NF](\d)$/i.test(args[0])) return obj.toFixed(+args[0].slice(1)); return fmt(obj); }
+      if (m === 'tofixed') { need([0, 1], O + '.toFixed(2)'); return obj.toFixed(args.length ? numArg(args[0], 'The number of decimals') : 0); }
+      if (m === 'isinteger') return Number.isInteger(obj);
     }
     throw this.error(node.line, `${KIND_WORD[k]} doesn't have methods`, `${c(O)} is ${KIND_WORD[k]} (${escapeHtml(show(obj))}), and ${c('.' + name + '()')} only works on text or lists.`,
       k === 'number' ? `For numbers use helper functions instead, like ${c(name + '(' + O + ')')} — e.g. ${c('round(x)')}, ${c('sqrt(x)')}, ${c('toString(x)')}.` : 'Check what is stored in that variable.');
@@ -1571,13 +2008,106 @@ class Interp {
     return targets.length;
   }
 
+  *nsCall(node, scope) {
+    const ns = node.obj.name, nm = node.name, key = (ns + '.' + nm).toLowerCase();
+    const argNodes = node.args || [];
+    const args = []; for (const a of argNodes) args.push(yield* this.eval(a, scope));
+    const lab = l => { const i = argNodes.findIndex(a => a.label === l); return i >= 0 ? args[i] : undefined; };
+    const say = (t, how) => { this.io.out(t); this.ex(node, node.line, () => `🖨️ ${c(ns + '.' + nm)} printed ${show(t.replace(/\n$/, ''))}${t.endsWith('\n') ? '' : ' (no new line at the end)'}.${how || ''}`); return null; };
+    const csFmt = () => { if (args.length > 1 && typeof args[0] === 'string' && /\{\d+\}/.test(args[0])) return args[0].replace(/\{(\d+)(?::[^}]*)?\}/g, (m, i) => fmt(args[+i + 1])); return args.map(v => fmt(v)).join(' '); };
+    const fake = (name, a = args) => this.builtin(name, a, { ...node, args: argNodes }, scope);
+    switch (key) {
+      case 'console.log': case 'console.info': case 'console.warn': case 'console.error': case 'console.debug': case 'document.write': case 'document.writeln':
+        return say(args.map(v => fmt(v)).join(' ') + '\n', RUN_LANG === 'js' ? ' (Simple JS shortcut: <code>print "…"</code>)' : '');
+      case 'console.writeline': case 'system.out.println': return say(csFmt() + '\n', ' (Simple C# shortcut: <code>print "…"</code>)');
+      case 'console.write': case 'system.out.print': case 'process.stdout.write': return say(csFmt());
+      case 'console.readline': case 'input.readline': return yield* fake('ask', []);
+      case 'console.readkey': case 'console.read': case 'console.clear': return null;
+      case 'math.sqrt': case 'math.pow': case 'math.abs': case 'math.floor': case 'math.ceil': case 'math.max': case 'math.min':
+        return yield* fake(nm.toLowerCase());
+      case 'math.round': return yield* fake('round');
+      case 'math.random': case 'random.random': return Math.random();
+      case 'math.pi': return Math.PI;
+      case 'math.e': return Math.E;
+      case 'math.sin': case 'math.cos': case 'math.tan': case 'math.log': case 'math.log10': case 'math.log2': case 'math.trunc': case 'math.sign': case 'math.cbrt':
+        return Math[nm.toLowerCase()](this.needNum(args[0], argNodes[0] || node, c(ns + '.' + nm)));
+      case 'math.factorial': { let f = 1; for (let i = 2; i <= args[0]; i++) f *= i; return f; }
+      case 'random.randint': case 'random.randrange': return yield* fake(key === 'random.randint' ? 'random' : 'randrange');
+      case 'random.choice': case 'random.choices': return yield* fake('choice');
+      case 'random.shuffle': { const l = args[0]; for (let i = l.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [l[i], l[j]] = [l[j], l[i]]; } return null; }
+      case 'int.random': case 'double.random': case 'float.random': {
+        const r = lab('in') ?? args[0];
+        if (!Array.isArray(r) || !r.length) throw this.error(node.line, 'Needs a range', `${c(ns + '.random(in: ...)')} needs a range like ${c('1...6')}.`, `Like ${c('Int.random(in: 1...6)')}.`);
+        if (key !== 'int.random') { const lo = r[0], hi = r[r.length - 1]; return lo + Math.random() * (hi - lo); }
+        const v = r[Math.floor(Math.random() * r.length)];
+        this.ex(node, node.line, () => `🎲 ${c(src(node))} picked a random whole number from ${r[0]} to ${r[r.length - 1]}: <b>${v}</b>`);
+        return v;
+      }
+      case 'bool.random': return Math.random() < 0.5;
+      case 'int.parse': case 'int32.parse': case 'convert.toint32': case 'convert.toint64': case 'number.parseint': case 'long.parse': return yield* fake('toInt');
+      case 'double.parse': case 'float.parse': case 'convert.todouble': case 'number.parsefloat': case 'decimal.parse': return yield* fake('toDouble');
+      case 'convert.tostring': case 'json.stringify': return fmt(args[0]);
+      case 'convert.toboolean': case 'bool.parse': return this.truthy(args[0]);
+      case 'string.join': case 'string.join': { const [sep, l] = args; return (Array.isArray(l) ? l : args.slice(1)).map(x => fmt(x)).join(fmt(sep)); }
+      case 'string.isnullorempty': case 'string.isnullorwhitespace': return args[0] === null || fmt(args[0]).trim() === '';
+      case 'number.isinteger': return Number.isInteger(args[0]);
+      case 'array.isarray': return Array.isArray(args[0]);
+      case 'time.sleep': return yield* fake('wait', [this.needNum(args[0], argNodes[0] || node, 'time.sleep') * 1000]);
+      case 'thread.sleep': case 'task.delay': return yield* fake('wait');
+      case 'sys.exit': case 'process.exit': case 'environment.exit': case 'os.exit': return yield* fake('exit', []);
+    }
+    if (['console', 'math', 'random', 'convert', 'json', 'time', 'sys', 'document', 'system', 'int', 'double', 'string', 'number'].includes(ns.toLowerCase()) && !scope.find(ns)) {
+      throw this.error(node.line, `Unknown command ${ns}.${nm}`, `${c(ns)} doesn't have ${c('.' + nm)} in ${L().name}.`, (ns.toLowerCase() === 'console' ? `Try ${c(RUN_LANG === 'cs' ? 'Console.WriteLine("hi")' : 'console.log("hi")')}.` : 'Check the spelling, or look at the Cheat sheet tab.'));
+    }
+    return NOT_NS;
+  }
+
   *builtin(name, args, node, scope) {
     const need = (n, usage) => {
       const ok = Array.isArray(n) ? args.length >= n[0] && args.length <= n[1] : args.length === n;
       if (!ok) throw this.error(node.line, `Wrong number of inputs for ${name}()`, `${c(name + '()')} needs ${Array.isArray(n) ? n[0] + ' to ' + n[1] : n} input${n === 1 ? '' : 's'}, but you gave it ${args.length}.`, `Write it like ${c(usage)}.`);
     };
     const N = (i) => this.needNum(args[i], node.args[i], c(name + '()'));
+    const orig = name;
+    name = ({ str: 'toString', String: 'toString', float: 'toDouble', Double: 'toDouble', Float: 'toDouble', parseFloat: 'toDouble', Number: 'toDouble',
+      Int: 'toInt', parseInt: 'toInt', Int32: 'toInt', randint: 'random', readLine: 'ask', readline: 'ask', prompt: 'ask', type: 'typeOf',
+      bool: 'toBool', Bool: 'toBool', Boolean: 'toBool', alert: 'say', println: 'say', fromBinary: 'dec', parseBinary: 'dec', toBin: 'toBinary', randrange: 'randrangeX' })[name] || name;
     switch (name) {
+      case 'say': { const t = args.map(v => fmt(v)).join(' ') + '\n'; this.io.out(t); this.ex(node, node.line, () => `🖨️ ${c(orig + '()')} printed ${show(t.slice(0, -1))}.`); return null; }
+      case 'toBool': need(1, 'bool(x)'); return this.truthy(args[0]);
+      case 'sum': need([1, 2], 'sum(numbers)'); { const l = args[0]; if (!Array.isArray(l) || !l.every(x => typeof x === 'number')) throw this.error(node.line, 'sum() needs a list of numbers', `${c(src(node.args[0]))} isn't a list of numbers.`, `Like ${c('sum([1, 2, 3])')}.`); return l.reduce((a, b) => a + b, args[1] || 0); }
+      case 'sorted': need(1, 'sorted(items)'); { const b = (typeof args[0] === 'string' ? [...args[0]] : deepCopy(args[0])); if (!Array.isArray(b)) throw this.error(node.line, 'sorted() needs a list', `${c(src(node.args[0]))} isn't a list.`, ''); if (b.every(x => typeof x === 'number')) b.sort((x, y) => x - y); else b.sort((x, y) => fmt(x) < fmt(y) ? -1 : fmt(x) > fmt(y) ? 1 : 0); return b; }
+      case 'reversed': need(1, 'reversed(items)'); return typeof args[0] === 'string' ? [...args[0]].reverse().join('') : deepCopy(args[0]).reverse();
+      case 'list': need([0, 1], 'list(x)'); return args.length ? (typeof args[0] === 'string' ? [...args[0]] : deepCopy(args[0])) : [];
+      case 'choice': need(1, 'choice(items)'); { const l = args[0]; if (!l || !l.length) throw this.error(node.line, 'Nothing to choose from', `${c(src(node.args[0]))} is empty.`, ''); const v = l[Math.floor(Math.random() * l.length)]; this.ex(node, node.line, () => `🎲 Picked ${show(v)} at random from ${c(src(node.args[0]))}.`); return v; }
+      case 'randrangeX': need([1, 2], 'randrange(1, 10)'); { const lo = args.length === 2 ? N(0) : 0, hi = N(args.length - 1); return lo + Math.floor(Math.random() * (hi - lo)); }
+      case 'chr': need(1, 'chr(65)'); return String.fromCharCode(N(0));
+      case 'ord': need(1, "ord('A')"); return fmt(args[0]).charCodeAt(0);
+      case 'bin': case 'toBinary': {
+        need([1, 2], name + '(13)'); const n = N(0) | 0; let b = (n >>> 0).toString(2); if (n >= 0) b = n.toString(2);
+        if (args.length === 2) b = b.padStart(N(1), '0');
+        const out = name === 'bin' && RUN_LANG === 'py' ? '0b' + b : b;
+        this.ex(node, node.line, () => `🔢 ${c(src(node))}: ${explainBits(n)} → ${c(out)}`);
+        return out;
+      }
+      case 'hex': need(1, 'hex(255)'); { const out = (RUN_LANG === 'py' ? '0x' : '') + (N(0) | 0).toString(16).toUpperCase(); this.ex(node, node.line, () => `🔢 ${N(0)} in hexadecimal (base 16, digits 0-9 then A-F) is ${c(out)}.`); return out; }
+      case 'dec': case 'fromHex': {
+        need(1, name === 'dec' ? 'dec("1101")' : 'fromHex("FF")');
+        const t = fmt(args[0]).trim().replace(/^0[bx]/i, '').replace(/_/g, '');
+        const base = name === 'dec' ? 2 : 16;
+        if (!(base === 2 ? /^[01]+$/ : /^[0-9a-f]+$/i).test(t)) throw this.error(node.line, `That isn't a ${base === 2 ? 'binary' : 'hex'} number`, `${show(args[0])} has digits that aren't allowed in base ${base}${base === 2 ? ' (binary only uses 0 and 1)' : ''}.`, base === 2 ? `Like ${c('dec("1101")')}.` : `Like ${c('fromHex("FF")')}.`);
+        const v = parseInt(t, base);
+        this.ex(node, node.line, () => base === 2 ? `🔢 ${c(t)} in binary: ${explainBits(v)}` : `🔢 ${c(t)} in hex = ${v}.`);
+        return v;
+      }
+      case 'bits': need(1, 'bits(13)'); return (N(0) | 0).toString(2).length;
+      case 'stride': {
+        const get = l => { const i = node.args.findIndex(a => a.label === l); return i >= 0 ? this.needNum(args[i], node.args[i], 'stride') : null; };
+        const from = get('from') ?? N(0), to = get('to'), through = get('through'), by = get('by') ?? 1;
+        const end = to ?? through; const out = [];
+        for (let v = from; by > 0 ? (to != null ? v < end : v <= end) : (to != null ? v > end : v >= end); v += by) { out.push(v); if (out.length > 1e6) break; }
+        return out;
+      }
       case 'random': {
         need([0, 2], 'random(1, 10)');
         if (args.length === 0) return Math.random();
@@ -1603,21 +2133,22 @@ class Interp {
       case 'toDouble': case 'stod': case 'double': case 'number': need(1, 'toDouble("2.5")'); return typeof args[0] === 'number' ? args[0] : typeof args[0] === 'boolean' ? +args[0] : this.toNum(args[0], false, node);
       case 'toString': case 'to_string': case 'string': need(1, 'toString(5)'); return fmt(args[0]);
       case 'length': case 'len': case 'size': need(1, 'length(x)'); if (typeof args[0] !== 'string' && !Array.isArray(args[0])) throw this.error(node.line, 'No length', `${c(src(node.args[0]))} is ${KIND_WORD[kind(args[0])]} — only text and lists have a length.`, ''); return args[0].length;
-      case 'typeOf': case 'typeof': need(1, 'typeOf(x)'); return { number: Number.isInteger(args[0]) ? 'int' : 'double', text: 'string', bool: 'bool', list: 'list', nothing: 'nothing' }[kind(args[0])];
+      case 'typeOf': case 'typeof': need(1, 'typeOf(x)'); return ({ py: { number: Number.isInteger(args[0]) ? 'int' : 'float', text: 'str', bool: 'bool', list: 'list', nothing: 'NoneType' }, js: { number: 'number', text: 'string', bool: 'boolean', list: 'object', nothing: 'object' } }[RUN_LANG] || { number: Number.isInteger(args[0]) ? 'int' : 'double', text: 'string', bool: 'bool', list: 'list', nothing: 'nothing', object: 'Random' })[kind(args[0])];
       case 'isNumber': need(1, 'isNumber(x)'); return typeof args[0] === 'number' || (typeof args[0] === 'string' && /^\s*[+-]?(\d+\.?\d*|\.\d+)\s*$/.test(args[0]));
       case 'range': {
         need([1, 3], 'range(1, 5)');
         let a = 0, b, st = 1;
-        if (args.length === 1) b = N(0) - 1; else { a = N(0); b = N(1); if (args.length === 3) st = N(2); }
+        if (args.length === 1) b = N(0); else { a = N(0); b = N(1); if (args.length === 3) st = N(2); }
         if (st === 0) throw this.error(node.line, 'Step can\'t be 0', 'A step of 0 never moves.', '');
-        const out = []; for (let v = a; st > 0 ? v <= b : v >= b; v += st) { out.push(v); if (out.length > 1e6) break; }
+        const out = []; for (let v = a; st > 0 ? v < b : v > b; v += st) { out.push(v); if (out.length > 1e6) break; }
+        this.ex(node, node.line, () => `🔢 ${c(src(node))} makes the numbers ${show(out)} — it starts at ${a} and stops <i>before</i> ${b}.`);
         return out;
       }
       case 'ask': case 'input': {
         need([0, 1], 'ask("What\'s your name?")');
         const raw = yield { input: true, prompt: args.length ? fmt(args[0]) : null, name: 'answer', type: 'auto' };
-        const r = this.parseTyped(raw, 'auto');
-        this.ex(node, node.line, () => `⌨️ ${c('ask')} got ${show(r.value)} from you${typeof r.value === 'number' ? ' (it looked like a number, so I made it one)' : ''}.`);
+        const r = RUN_LANG === 'py' || RUN_LANG === 'js' || RUN_LANG === 'cs' || RUN_LANG === 'swift' ? { value: raw } : this.parseTyped(raw, 'auto');
+        this.ex(node, node.line, () => `⌨️ ${c(orig)} got ${show(r.value)} from you${typeof r.value === 'number' ? ' (it looked like a number, so I made it one)' : ''}.`);
         return r.value;
       }
       case 'wait': case 'sleep': {
@@ -1653,32 +2184,363 @@ class Interp {
 }
 
 /* =====================================================================
+   SIMPLE HTML & SIMPLE CSS — plain-word markup compiled to real HTML/CSS
+   ===================================================================== */
+const H_WORDS = {
+  page:     { tag: 'title', head: true, desc: 'the name of the page (shown on the browser tab)' },
+  title:    { tag: 'h1', desc: 'a big heading' },
+  subtitle: { tag: 'h2', desc: 'a medium heading' },
+  heading:  { tag: 'h3', desc: 'a small heading' },
+  text:     { tag: 'p', desc: 'a paragraph of text' },
+  small:    { tag: 'small', desc: 'small print' },
+  bold:     { tag: 'b', desc: 'bold text' },
+  quote:    { tag: 'blockquote', desc: 'a quote' },
+  code:     { tag: 'pre', desc: 'a block of code' },
+  image:    { tag: 'img', void: true, desc: 'a picture' },
+  link:     { tag: 'a', desc: 'a clickable link' },
+  button:   { tag: 'button', desc: 'a button' },
+  input:    { tag: 'input', void: true, desc: 'a box people can type in' },
+  checkbox: { tag: 'label', desc: 'a tick box' },
+  list:     { tag: 'ul', desc: 'a bullet list' },
+  numbers:  { tag: 'ol', desc: 'a numbered list' },
+  item:     { tag: 'li', desc: 'one item in a list' },
+  box:      { tag: 'div', desc: 'a box that groups things' },
+  row:      { tag: 'div', cls: 'row', desc: 'a box that puts things side by side' },
+  column:   { tag: 'div', cls: 'column', desc: 'a box that stacks things on top of each other' },
+  card:     { tag: 'div', cls: 'card', desc: 'a box with a border, like a card' },
+  line:     { tag: 'hr', void: true, desc: 'a line across the page' },
+  space:    { tag: 'br', void: true, desc: 'a line break' },
+  video:    { tag: 'video', desc: 'a video player' },
+  youtube:  { tag: 'iframe', desc: 'a YouTube video' },
+  table:    { tag: 'table', desc: 'a table (rows start with |)' },
+  style:    { tag: 'style', desc: 'Simple CSS styles for this page' },
+  header: { tag: 'header', desc: 'the top part of the page' }, footer: { tag: 'footer', desc: 'the bottom part of the page' },
+  nav: { tag: 'nav', desc: 'a menu of links' }, section: { tag: 'section', desc: 'a section of the page' },
+};
+const H_ALIASES = { picture: 'image', img: 'image', photo: 'image', paragraph: 'text', p: 'text', h1: 'title', h2: 'subtitle', h3: 'heading', a: 'link', ul: 'list', ol: 'numbers', li: 'item', div: 'box', hr: 'line', br: 'space', blockquote: 'quote', pre: 'code', tab: 'page', textbox: 'input', b: 'bold', bullets: 'list' };
+const H_REAL_TAGS = new Set(['h4', 'h5', 'h6', 'span', 'main', 'article', 'aside', 'em', 'strong', 'u', 'mark', 'label', 'select', 'option', 'textarea', 'audio', 'canvas', 'figure', 'figcaption', 'details', 'summary', 'iframe', 'form']);
+const H_MODS = { center: 'text-align:center', left: 'text-align:left', right: 'text-align:right', bold: 'font-weight:700', italic: 'font-style:italic', underline: 'text-decoration:underline',
+  big: 'font-size:1.6em', huge: 'font-size:2.6em', small: 'font-size:.8em', round: 'border-radius:12px', rounded: 'border-radius:12px', shadow: 'box-shadow:0 4px 14px rgba(0,0,0,.25)',
+  hidden: 'display:none', uppercase: 'text-transform:uppercase', border: 'border:2px solid currentColor', padded: 'padding:12px', wide: 'width:100%' };
+
+function cssColor(words) {
+  const w = String(words).trim().toLowerCase();
+  const joined = w.replace(/\s+/g, '');
+  if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('color', joined)) return joined;
+  if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('color', w)) return w;
+  return null;
+}
+function inlineMd(t) { // **bold**, *italic*, `code`, [text](url)
+  let h = escapeHtml(t);
+  h = h.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*(?!\s)(.+?)\*/g, '$1<i>$2</i>').replace(/`(.+?)`/g, '<code>$1</code>')
+       .replace(/\[(.+?)\]\((.+?)\)/g, (m, a, u) => `<a href="${u.replace(/"/g, '&quot;')}" target="_blank">${a}</a>`);
+  return h;
+}
+function unquote(t) { t = t.trim(); const m = /^"(.*)"$/.exec(t) || /^'(.*)'$/.exec(t); return m ? m[1] : t; }
+function splitQuoted(t) { const out = []; const re = /"([^"]*)"|'([^']*)'|(\S+)/g; let m; while ((m = re.exec(t))) out.push({ v: m[1] ?? m[2] ?? m[3], q: m[1] != null || m[2] != null }); return out; }
+
+function compileSimpleHTML(src, io) {
+  const lines = src.replace(/\t/g, '    ').split('\n');
+  const root = { kids: [], indent: -1 }; const stack = [root];
+  let title = null, css = [], cssSrc = [];
+  const ex = (line, html) => io.explain(line, html);
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i], ln = i + 1;
+    if (!raw.trim() || raw.trim().startsWith('//')) continue;
+    const indent = raw.length - raw.trimStart().length;
+    let t = raw.trim();
+    while (stack.length > 1 && indent <= stack[stack.length - 1].indent) stack.pop();
+    const parent = stack[stack.length - 1];
+    if (parent.word === 'style') { cssSrc.push({ text: raw, line: ln }); continue; }
+    if (t.startsWith('<')) { parent.kids.push({ raw: t, line: ln }); ex(ln, `🏷️ Real HTML ${c(t.length > 40 ? t.slice(0, 40) + '…' : t)} — passed through as-is.`); continue; }
+    if (parent.word === 'table' && t.startsWith('|')) {
+      const cells = t.replace(/^\||\|$/g, '').split('|').map(x => x.trim());
+      const first = !parent.kids.length;
+      parent.kids.push({ raw: '<tr>' + cells.map(x => first ? `<th>${inlineMd(x)}</th>` : `<td>${inlineMd(x)}</td>`).join('') + '</tr>', line: ln });
+      ex(ln, first ? `📊 First table row = the <b>header</b> (bold titles): ${cells.map(escapeHtml).join(', ')}` : `📊 A table row with ${cells.length} cells.`);
+      continue;
+    }
+    if (/^[-*•]\s+/.test(t)) t = 'item ' + t.replace(/^[-*•]\s+/, '');
+    // modifiers in [ ] at the end
+    let mods = [];
+    const mm = /\s*\[([^\]]*)\]\s*$/.exec(t);
+    if (mm && !/\]\(/.test(t.slice(mm.index))) { mods = mm[1].split(',').map(x => x.trim()).filter(Boolean); t = t.slice(0, mm.index); }
+    let m = /^([A-Za-z][\w-]*)((?:[.#][\w-]+)*)(?::)?\s*(.*)$/.exec(t);
+    let word = m ? m[1].toLowerCase() : '', sel = m ? m[2] : '', rest = m ? m[3] : t;
+    if (word === 'numbered' && /^list\b/i.test(rest)) { word = 'numbers'; rest = rest.replace(/^list\s*/i, ''); }
+    word = H_ALIASES[word] || word;
+    let def = H_WORDS[word];
+    if (!def && H_REAL_TAGS.has(word)) def = { tag: word, desc: `a <${word}> element` };
+    if (!def) {
+      const best = closest(word, Object.keys(H_WORDS));
+      if (best && word.length > 2) throw new SimplyError(ln, `I don't know "${m ? m[1] : t}"`, `Each line starts with a word that says what to make, like ${c('title')}, ${c('text')} or ${c('image')}. ${c(m ? m[1] : t)} isn't one of them.`, `Did you mean ${c(best)}? (See the Cheat sheet tab for every word.)`);
+      word = 'text'; def = H_WORDS.text; rest = t; sel = '';
+      ex(ln, `💡 This line doesn't start with a known word, so I made it a paragraph of ${c('text')}. (Start it with ${c('title')}, ${c('image')}, … to make something else.)`);
+    }
+    const node = { word, def, tag: def.tag, line: ln, indent, kids: [], attrs: {}, classes: def.cls ? [def.cls] : [], styles: [], html: '' };
+    for (const part of sel.match(/[.#][\w-]+/g) || []) part[0] === '.' ? node.classes.push(part.slice(1)) : (node.attrs.id = part.slice(1));
+    for (const mo of mods) {
+      const k = mo.toLowerCase();
+      if (H_MODS[k]) node.styles.push(H_MODS[k]);
+      else if (/^(bg|background)\s+/.test(k) && cssColor(k.replace(/^(bg|background)\s+/, ''))) node.styles.push('background:' + cssColor(k.replace(/^(bg|background)\s+/, '')));
+      else if (/^\d+(px|%)?$/.test(k)) node.styles.push('width:' + (/\D$/.test(k) ? k : k + 'px'));
+      else if (cssColor(k)) node.styles.push('color:' + cssColor(k));
+      else io.warn(ln, `⚠️ Line ${ln}: I don't know the style "${mo}", so I skipped it. Try colors (red, light blue), bg yellow, center, big, small, bold, italic, round, shadow, hidden.`);
+    }
+    const parts = splitQuoted(rest);
+    switch (word) {
+      case 'page': title = unquote(rest); ex(ln, `📄 ${c('page ' + rest)} → ${c('<title>' + title + '</title>')} — ${def.desc}.`); continue;
+      case 'image': {
+        if (!parts.length) throw new SimplyError(ln, 'image needs a picture', `${c('image')} needs the picture's web address or file name.`, `Like ${c('image https://picsum.photos/400/200 "A nice view"')}`);
+        node.attrs.src = parts[0].v; node.attrs.alt = parts[1] ? parts.slice(1).map(x => x.v).join(' ') : 'picture';
+        node.styles.push('max-width:100%'); break;
+      }
+      case 'link': {
+        const url = parts.find(x => !x.q && /^(https?:|mailto:|#|\/|\.|www\.)|\.\w{2,4}(\/|$)/.test(x.v));
+        const txt = parts.filter(x => x !== url).map(x => x.v).join(' ');
+        if (!url) throw new SimplyError(ln, 'link needs a web address', `${c('link')} needs somewhere to go, like ${c('https://example.com')}.`, `Like ${c('link "My favorite site" https://example.com')}`);
+        node.attrs.href = /^www\./.test(url.v) ? 'https://' + url.v : url.v; node.attrs.target = '_blank'; node.html = inlineMd(txt || url.v); break;
+      }
+      case 'button': {
+        const sayI = parts.findIndex(x => !x.q && ['says', 'say', 'shows', 'alerts'].includes(x.v.toLowerCase()));
+        const goI = parts.findIndex(x => !x.q && ['goes', 'opens', 'go'].includes(x.v.toLowerCase()));
+        const end = [sayI, goI].filter(x => x >= 0).sort((a, b) => a - b)[0] ?? parts.length;
+        node.html = inlineMd(parts.slice(0, end).map(x => x.v).join(' ') || 'Button');
+        if (sayI >= 0) { const msg = parts.slice(sayI + 1, goI > sayI ? goI : undefined).map(x => x.v).join(' '); node.attrs.onclick = `alert(${JSON.stringify(msg)})`; node.says = msg; }
+        if (goI >= 0) { let u = parts[goI + 1] && parts[goI + 1].v === 'to' ? parts[goI + 2] : parts[goI + 1]; if (u) node.attrs.onclick = `window.open(${JSON.stringify(u.v)})`; node.goes = u && u.v; }
+        break;
+      }
+      case 'input': node.attrs.placeholder = unquote(rest) || 'Type here'; break;
+      case 'checkbox': node.html = '<input type="checkbox"> ' + inlineMd(unquote(rest)); break;
+      case 'video': if (!parts.length) throw new SimplyError(ln, 'video needs a file', `${c('video')} needs the video's web address.`, `Like ${c('video https://example.com/movie.mp4')}`); node.attrs.src = parts[0].v; node.attrs.controls = ''; node.styles.push('max-width:100%'); break;
+      case 'youtube': {
+        const v = parts[0] ? parts[0].v : '';
+        const id = (/(?:v=|youtu\.be\/|embed\/)([\w-]{6,})/.exec(v) || [, v])[1];
+        if (!id) throw new SimplyError(ln, 'youtube needs a video', `${c('youtube')} needs a YouTube link or video id.`, `Like ${c('youtube https://www.youtube.com/watch?v=dQw4w9WgXcQ')}`);
+        node.attrs.src = 'https://www.youtube.com/embed/' + id; node.attrs.width = '400'; node.attrs.height = '225'; node.attrs.allowfullscreen = ''; node.attrs.frameborder = '0'; break;
+      }
+      case 'style': node.isStyle = true; break;
+      default: node.html = inlineMd(unquote(rest));
+    }
+    parent.kids.push(node);
+    stack.push(node);
+    const preview = renderH(node, '', true);
+    ex(ln, `🏷️ ${c((m ? m[1] : word) + sel + (rest ? ' ' + rest : ''))} → ${c(preview.length > 70 ? preview.slice(0, 67) + '…' : preview)} — ${def.desc}${node.says ? `. Clicking it pops up ${show(node.says)}` : ''}${node.goes ? `. Clicking it opens ${escapeHtml(node.goes)}` : ''}${mods.length ? ` (styled: ${mods.map(escapeHtml).join(', ')})` : ''}.`);
+  }
+  // style blocks → Simple CSS
+  let userCss = '';
+  if (cssSrc.length) {
+    const minInd = Math.min(...cssSrc.filter(x => x.text.trim()).map(x => x.text.length - x.text.trimStart().length));
+    const cssText = cssSrc.map(x => x.text.slice(minInd)).join('\n');
+    const lineMap = cssSrc.map(x => x.line);
+    userCss = compileSimpleCSS(cssText, { explain: (l, h) => io.explain(lineMap[l - 1] || l, h), warn: io.warn }, lineMap).css;
+  }
+  const body = root.kids.map(k => renderH(k, '  ')).join('\n');
+  return { html: body, title, css: userCss };
+}
+function renderH(n, ind, shallow) {
+  if (n.raw) return ind + n.raw;
+  if (n.isStyle) return '';
+  const attrs = { ...n.attrs };
+  if (n.classes.length) attrs.class = n.classes.join(' ');
+  if (n.styles.length) attrs.style = n.styles.join('; ');
+  const a = Object.entries(attrs).map(([k, v]) => v === '' ? ' ' + k : ` ${k}="${String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`).join('');
+  if (n.def.void) return `${ind}<${n.tag}${a}>`;
+  if (shallow) return `<${n.tag}${a}>${n.html}${n.kids.length ? '…' : ''}</${n.tag}>`;
+  if (!n.kids.length) return `${ind}<${n.tag}${a}>${n.html}</${n.tag}>`;
+  return `${ind}<${n.tag}${a}>${n.html ? '\n' + ind + '  ' + n.html : ''}\n${n.kids.map(k => renderH(k, ind + '  ')).filter(Boolean).join('\n')}\n${ind}</${n.tag}>`;
+}
+
+const C_SEL = { page: 'body', everything: '*', all: '*', title: 'h1', titles: 'h1', subtitle: 'h2', subtitles: 'h2', heading: 'h3', headings: 'h1, h2, h3', text: 'p', paragraph: 'p', image: 'img', images: 'img', picture: 'img', link: 'a', links: 'a',
+  box: 'div', boxes: 'div', list: 'ul', item: 'li', items: 'li', button: 'button', buttons: 'button', input: 'input', row: '.row', column: '.column', card: '.card', cards: '.card', table: 'table', quote: 'blockquote', code: 'pre', line: 'hr', video: 'video', header: 'header', footer: 'footer', nav: 'nav', section: 'section' };
+const C_PROPS = {
+  background: 'background', bg: 'background', 'background color': 'background', 'background image': 'background-image',
+  color: 'color', 'text color': 'color', 'font color': 'color',
+  size: 'font-size', 'text size': 'font-size', 'font size': 'font-size',
+  font: 'font-family', 'font family': 'font-family', weight: 'font-weight', 'font weight': 'font-weight',
+  align: 'text-align', 'text align': 'text-align', width: 'width', height: 'height', 'max width': 'max-width', 'min height': 'min-height',
+  round: 'border-radius', rounded: 'border-radius', corners: 'border-radius', radius: 'border-radius',
+  border: 'border', padding: 'padding', 'space inside': 'padding', 'inner space': 'padding', margin: 'margin', 'space outside': 'margin', 'outer space': 'margin',
+  gap: 'gap', spacing: 'gap', shadow: 'box-shadow', 'text shadow': 'text-shadow', opacity: 'opacity', 'see through': 'opacity', layout: 'display', 'line height': 'line-height',
+  'letter spacing': 'letter-spacing', cursor: 'cursor', position: 'position', 'z': 'z-index', transition: 'transition', transform: 'transform', rotate: 'rotate', scale: 'scale', display: 'display',
+};
+const C_FLAGS = { center: ['text-align', 'center', 'centers the text'], bold: ['font-weight', '700', 'makes the text bold'], italic: ['font-style', 'italic', 'makes the text slanted'],
+  underline: ['text-decoration', 'underline', 'underlines the text'], uppercase: ['text-transform', 'uppercase', 'MAKES THE TEXT CAPITALS'], hidden: ['display', 'none', 'hides it'],
+  round: ['border-radius', '12px', 'rounds the corners'], rounded: ['border-radius', '12px', 'rounds the corners'], circle: ['border-radius', '50%', 'makes it a circle'], shadow: ['box-shadow', '0 4px 14px rgba(0,0,0,.25)', 'adds a soft shadow under it'],
+  clickable: ['cursor', 'pointer', 'shows a pointing hand when the mouse is over it'], row: ['display', 'flex', 'puts what\'s inside side by side'], smooth: ['transition', 'all .25s', 'makes changes animate smoothly'], 'no underline': ['text-decoration', 'none', 'removes the underline'] };
+const C_FONTS = { rounded: '"Nunito", "Arial Rounded MT Bold", sans-serif', fancy: 'cursive', handwriting: 'cursive', code: 'ui-monospace, Menlo, monospace', typewriter: '"Courier New", monospace', book: 'Georgia, serif', serif: 'Georgia, serif', normal: 'system-ui, sans-serif', clean: 'system-ui, sans-serif', comic: '"Comic Sans MS", cursive', impact: 'Impact, sans-serif' };
+const C_PX = new Set(['font-size', 'width', 'height', 'max-width', 'min-height', 'border-radius', 'padding', 'margin', 'gap', 'letter-spacing']);
+
+function compileSimpleCSS(src, io, lineMap) {
+  const lines = src.replace(/\t/g, '    ').split('\n');
+  const rules = []; let cur = null, sub = null, raw = [], inRaw = 0;
+  const ex = (l, h) => io.explain(l, h);
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i], ln = i + 1;
+    let t = rawLine.trim();
+    if (inRaw) { raw.push(rawLine); inRaw += (t.match(/\{/g) || []).length - (t.match(/\}/g) || []).length; continue; }
+    if (!t || t.startsWith('//') || t.startsWith('/*')) continue;
+    if (/\{\s*$|\{.*\}/.test(t)) { raw.push(rawLine); inRaw = (t.match(/\{/g) || []).length - (t.match(/\}/g) || []).length; ex(ln, `🏷️ Real CSS ${c(t)} — passed through as-is.`); continue; }
+    const indent = rawLine.length - rawLine.trimStart().length;
+    t = t.replace(/;$/, '');
+    // selector line: "title:" / "title and subtitle:" / ".card:" / "hover:"
+    const selM = /^(.+?):\s*$/.exec(t);
+    if (selM && (indent === 0 || /^(hover|when hovered|when clicked|active|focus)$/i.test(selM[1].trim()))) {
+      const name = selM[1].trim().toLowerCase();
+      if (indent > 0 && cur) {
+        const pseudo = /hover/.test(name) ? ':hover' : /click|active/.test(name) ? ':active' : ':focus';
+        sub = { sel: cur.sel.split(',').map(x => x.trim() + pseudo).join(', '), props: [], line: ln, indent }; rules.push(sub);
+        ex(ln, `👆 ${c(selM[1] + ':')} → ${c(sub.sel)} — these styles only apply ${pseudo === ':hover' ? 'while the mouse is over it' : pseudo === ':active' ? 'while it\'s being clicked' : 'while it\'s selected'}.`);
+        continue;
+      }
+      const sels = name.split(/\s*(?:,|\band\b)\s*/).filter(Boolean).map(x => {
+        if (/^[.#*\[]/.test(x) || /[\s>]/.test(x) && !C_SEL[x]) return x;
+        if (C_SEL[x]) return C_SEL[x];
+        if (/^[a-z][a-z0-9]*$/.test(x)) return x; // real tag names
+        throw new SimplyError(lineMap ? lineMap[i] : ln, `I don't know what "${x}" is`, `Before the <code>:</code> you name what to style, like ${c('title:')}, ${c('text:')}, ${c('button:')} or ${c('.card:')}.`, closest(x, Object.keys(C_SEL)) ? `Did you mean ${c(closest(x, Object.keys(C_SEL)) + ':')}?` : 'See the Cheat sheet tab for the names you can use.');
+      });
+      cur = { sel: sels.join(', '), props: [], line: ln }; sub = null; rules.push(cur);
+      ex(ln, `🎯 ${c(selM[1] + ':')} → styles for ${c(cur.sel)}${sels.some((s2, k) => s2 !== name.split(/\s*(?:,|\band\b)\s*/)[k]) ? ` (${escapeHtml(selM[1])} = ${escapeHtml(cur.sel)} in real CSS)` : ''}.`);
+      continue;
+    }
+    if (sub && indent <= sub.indent) sub = null;
+    const target = sub || cur;
+    if (!target) throw new SimplyError(lineMap ? lineMap[i] : ln, 'Style without a target', `${c(t)} is a style, but I don't know what it's for yet.`, `First name what to style on its own line, then indent the styles under it:<br><code>title:<br>&nbsp;&nbsp;&nbsp;&nbsp;color: red</code>`);
+    const pm = /^([a-zA-Z][a-zA-Z -]*?)\s*:\s*(.+)$/.exec(t);
+    let prop, val, why;
+    if (!pm) {
+      const f = C_FLAGS[t.toLowerCase()];
+      if (!f) {
+        const best = closest(t.toLowerCase(), Object.keys(C_FLAGS));
+        throw new SimplyError(lineMap ? lineMap[i] : ln, `I don't know the style "${t}"`, `A style line is either a name and value like ${c('color: red')}, or a single word like ${c('center')}, ${c('bold')} or ${c('shadow')}.`, best ? `Did you mean ${c(best)}?` : 'See the Cheat sheet tab for every style word.');
+      }
+      [prop, val, why] = f;
+    } else {
+      let name = pm[1].trim().toLowerCase(); val = pm[2].trim();
+      prop = C_PROPS[name] || name.replace(/\s+/g, '-');
+      ({ val, why } = cssValue(prop, val));
+      const ok = typeof CSS === 'undefined' || !CSS.supports || CSS.supports(prop, val);
+      if (!ok) {
+        const known = typeof CSS === 'undefined' || !CSS.supports || CSS.supports(prop, 'inherit');
+        const best = closest(name, Object.keys(C_PROPS));
+        throw new SimplyError(lineMap ? lineMap[i] : ln, known ? `"${pm[2].trim()}" doesn't work for ${name}` : `I don't know the style "${pm[1].trim()}"`,
+          known ? `${c(name)} can't be set to ${c(pm[2].trim())}.` : `${c(pm[1].trim())} isn't a style name I know.`,
+          known ? cssHint(prop) : (best ? `Did you mean ${c(best + ':')}?` : 'See the Cheat sheet tab for every style name.'));
+      }
+      why = why || cssWhy(prop, val);
+    }
+    target.props.push([prop, val]);
+    ex(lineMap ? lineMap[i] : ln, `🎨 ${c(t)} → ${c(prop + ': ' + val + ';')} — ${why}.`);
+  }
+  let css = rules.filter(r => r.props.length).map(r => `${r.sel} {\n${r.props.map(([p, v]) => `  ${p}: ${v};`).join('\n')}\n}`).join('\n\n');
+  if (raw.length) css += (css ? '\n\n' : '') + raw.join('\n');
+  return { css };
+}
+function cssValue(prop, v) {
+  const lv = v.toLowerCase(); let why = null;
+  if (prop === 'background' || prop === 'color') { const col = cssColor(v); if (col) return { val: col }; if (/^(https?:|\.\/|[\w-]+\.(png|jpe?g|gif|webp|svg))/i.test(v) && prop === 'background') return { val: `url("${v}") center / cover`, why: 'uses that picture as the background' }; }
+  if (prop === 'font-family') return { val: C_FONTS[lv] || (/[,"']/.test(v) ? v : `"${v}", sans-serif`) };
+  if (prop === 'font-size' && { tiny: 1, small: 1, normal: 1, big: 1, huge: 1, giant: 1 }[lv]) return { val: { tiny: '10px', small: '13px', normal: '16px', big: '28px', huge: '44px', giant: '64px' }[lv] };
+  if (prop === 'font-weight' && lv === 'bold') return { val: '700' };
+  if (prop === 'opacity' && /%$/.test(v)) return { val: String(parseFloat(v) / 100) };
+  if (prop === 'box-shadow' && /^(yes|on|true|soft)$/.test(lv)) return { val: '0 4px 14px rgba(0,0,0,.25)' };
+  if (prop === 'display' && { row: 1, column: 1, grid: 1 }[lv.split(' ')[0]]) {
+    if (lv === 'row') return { val: 'flex', why: 'puts what\'s inside side by side' };
+    if (lv === 'column') return { val: 'flex; flex-direction: column', why: 'stacks what\'s inside' };
+  }
+  if (prop === 'border') {
+    const parts = v.split(/\s+/); const n = parts.find(x => /^\d+(px)?$/.test(x)); const st = parts.find(x => /^(solid|dashed|dotted|double|none)$/.test(x)); const col = cssColor(parts.filter(x => x !== n && x !== st).join(' ') || 'black');
+    if (col || n) return { val: `${n ? (/px$/.test(n) ? n : n + 'px') : '2px'} ${st || 'solid'} ${col || 'black'}`, why: `draws a ${st || 'solid'} border around it` };
+  }
+  if (C_PX.has(prop)) v = v.split(/\s+/).map(x => /^-?\d+(\.\d+)?$/.test(x) ? x + 'px' : x).join(' ');
+  return { val: v, why };
+}
+function cssWhy(prop, val) {
+  return ({ 'background': `sets the background to ${val}`, 'color': `makes the text ${val}`, 'font-size': `makes the text ${val} tall`, 'font-family': 'changes the font', 'text-align': `lines the text up on the ${val}`,
+    'width': `makes it ${val} wide`, 'height': `makes it ${val} tall`, 'border-radius': 'rounds the corners', 'padding': 'adds space inside, around the content', 'margin': 'adds space outside, between it and other things',
+    'gap': 'adds space between the things inside', 'box-shadow': 'adds a shadow', 'opacity': 'makes it see-through (0 = invisible, 1 = solid)', 'font-weight': 'changes how thick the letters are', 'max-width': `stops it from getting wider than ${val}` })[prop] || `sets ${prop}`;
+}
+function cssHint(prop) {
+  return ({ 'color': 'Use a color name like <code>red</code>, <code>light blue</code>, or a code like <code>#ff8800</code>.', 'background': 'Use a color like <code>yellow</code> or a picture address.', 'font-size': 'Use a number like <code>24</code> or a word: tiny, small, normal, big, huge.',
+    'text-align': 'Use <code>left</code>, <code>center</code> or <code>right</code>.' })[prop] || 'Check the value — numbers, color names and words like <code>center</code> usually work.';
+}
+const H_BASE_CSS = `body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:16px;line-height:1.5;color:#111;background:#fff}img,video,iframe{max-width:100%}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.column{display:flex;flex-direction:column;gap:8px}.card{border:1px solid #ddd;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.08)}table{border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px 10px;text-align:left}button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid #888;background:#f4f4f4;cursor:pointer}input{font:inherit;padding:7px 10px;border:1px solid #aaa;border-radius:6px}`;
+const H_DEMO = `page "My Page"
+title Welcome to my page!
+subtitle All about me
+text Hi! I'm learning to code. This is **bold** and this is *slanted*.
+row
+    card
+        heading Favorite food
+        text Pizza 🍕
+    card
+        heading Favorite game
+        text Minecraft ⛏️
+image https://picsum.photos/seed/simple/480/200 "A random photo"
+list
+    - Apples
+    - Bananas
+button "Say hi" says "Hello there!"
+link "Learn more" https://developer.mozilla.org
+`;
+
+/* =====================================================================
    UI
    ===================================================================== */
 const $ = id => document.getElementById(id);
 const ta = $('src'), hl = $('hl'), gutter = $('gutter'), conEl = $('console'), errband = $('errband');
 
 /* ---------- syntax highlighting ---------- */
-const HL_KW = new Set(['if','else','while','for','do','repeat','times','in','to','until','step','return','break','continue','func','function','fn','and','or','not','const','static','using','namespace','true','false','endl','main']);
-const HL_IO = new Set(['cout','cin','print','say','scan','ask','getline','printf','scanf','puts','putchar']);
-const HL_FN = new Set(BUILTIN_NAMES);
+const HL_KW = new Set(['if','else','elif','while','for','foreach','do','repeat','times','in','of','to','until','step','return','break','continue','func','function','fn','def','and','or','not','is','const','static','using','namespace','class','public','private','import','from','pass','new','true','false','True','False','None','null','nil','undefined','endl','main','Main','let','var']);
+const HL_IO = new Set(['cout','cin','print','say','scan','ask','getline','printf','scanf','puts','putchar','input','prompt','alert','readLine','console','Console','WriteLine','ReadLine','log']);
+const HL_FN = new Set(BUILTIN_NAMES.concat(['toBinary','dec','hex','bin','len','range','str','float','sum','sorted','parseInt','Math','random','math']));
+const RE_PY = /(#[^\n]*)|($^)|([fFrR]?"""[\s\S]*?(?:"""|$)|[fFrR]?"(?:\\.|[^"\\\n])*"?|[fFrR]?'(?:\\.|[^'\\\n])*'?)|($^)|(\b0[bBxX][0-9a-fA-F_]+\b|\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)/gm;
+const RE_C = /(\/\/[^\n]*)|(\/\*[\s\S]*?(?:\*\/|$))|(\$?"(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?|`[^`]*`?)|(^[ \t]*#[^\n]*)|(\b0[bBxX][0-9a-fA-F_]+\b|\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)/gm;
 function highlight(code) {
-  const re = /(\/\/[^\n]*)|(\/\*[\s\S]*?(?:\*\/|$))|("(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?)|(^[ \t]*#[^\n]*)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)/gm;
+  if (L().kind === 'html' || L().kind === 'css') return highlightMarkup(code, L().kind);
+  const re = LANG === 'py' ? RE_PY : RE_C;
+  re.lastIndex = 0;
   let out = '', last = 0, m;
   while ((m = re.exec(code))) {
+    if (m[0] === '') { re.lastIndex++; continue; }
     out += escapeHtml(code.slice(last, m.index));
     const t = m[0]; let cls = null;
     if (m[1] || m[2]) cls = 't-com';
     else if (m[3]) cls = 't-str';
     else if (m[4]) cls = 't-dir';
     else if (m[5]) cls = 't-num';
-    else if (m[6]) cls = HL_IO.has(t) ? 't-io' : (t in TYPE_WORDS) ? 't-type' : HL_KW.has(t) ? 't-kw' : (HL_FN.has(t) && code[re.lastIndex] === '(') ? 't-fn' : null;
+    else if (m[6]) cls = HL_IO.has(t) ? 't-io' : (t in TYPE_WORDS) ? 't-type' : HL_KW.has(t) ? 't-kw' : (HL_FN.has(t) && /[(.]/.test(code[re.lastIndex] || '')) ? 't-fn' : null;
     out += cls ? `<span class="${cls}">${escapeHtml(t)}</span>` : escapeHtml(t);
     last = re.lastIndex;
   }
   out += escapeHtml(code.slice(last));
   return out + '\n ';
 }
+function highlightMarkup(code, kind) {
+  return code.split('\n').map(line => {
+    const t = line.trim();
+    if (!t) return escapeHtml(line);
+    if (t.startsWith('//') || t.startsWith('/*')) return `<span class="t-com">${escapeHtml(line)}</span>`;
+    if (t.startsWith('<') || (kind === 'css' && /[{}]/.test(t))) return `<span class="t-dir">${escapeHtml(line)}</span>`;
+    const ind = escapeHtml(line.slice(0, line.length - line.trimStart().length));
+    if (kind === 'html') {
+      if (t.startsWith('|')) return ind + `<span class="t-type">${escapeHtml(t)}</span>`;
+      const m = /^([-*•]|[A-Za-z][\w-]*(?:[.#][\w-]+)*)(.*)$/.exec(t);
+      if (!m) return escapeHtml(line);
+      const rest = escapeHtml(m[2])
+        .replace(/(\[[^\]]*\])\s*$/, '<span class="t-type">$1</span>')
+        .replace(/(&quot;.*?&quot;)/g, '<span class="t-str">$1</span>')
+        .replace(/(https?:\/\/[^\s<]+)/g, '<span class="t-fn">$1</span>');
+      return ind + `<span class="t-kw">${escapeHtml(m[1])}</span>` + rest;
+    }
+    const sel = /^(.+?):\s*$/.exec(t);
+    if (sel) return ind + `<span class="t-kw">${escapeHtml(sel[1])}</span>:`;
+    const pm = /^([A-Za-z][\w -]*?)(\s*:\s*)(.*)$/.exec(t);
+    if (pm) return ind + `<span class="t-type">${escapeHtml(pm[1])}</span>${escapeHtml(pm[2])}<span class="t-str">${escapeHtml(pm[3])}</span>`;
+    return ind + `<span class="t-io">${escapeHtml(t)}</span>`;
+  }).join('\n') + '\n ';
+}
+
 let errLine = null;
 function refresh() {
   hl.innerHTML = highlight(ta.value);
@@ -1806,14 +2668,16 @@ mc.port1.onmessage = () => { const r = mcQueue.shift(); if (r) r(); };
 function yieldToBrowser() { return new Promise(res => { mcQueue.push(res); mc.port2.postMessage(0); }); }
 async function run() {
   if (running) { running.stop(); return; }
+  RUN_LANG = LANG;
+  if (L().kind === 'html' || L().kind === 'css') return runMarkup();
   showTab('console');
   errLine = null; refresh();
   con.clear();
   const code = ta.value;
   const fname = $('fname').value || 'main.scpp';
-  con.sys(`▶ Running ${fname}${$('explain').checked ? '  ·  explain mode ON' : ''}`);
+  con.sys(`▶ Running ${fname} as ${L().name}${$('explain').checked ? '  ·  explain mode ON' : ''}`);
   let ast;
-  try { ast = new Parser(lex(code), LANG).parseProgram(); }
+  try { ast = new Parser(lex(code, LANG), LANG).parseProgram(); }
   catch (e) { con.error(e, code); con.sys('✖ Your program didn\'t start — fix the problem above and press Run again.'); return; }
   if (!ast.length) { con.warn(null, '🤔 Your file is empty! Try typing:  ' + L().hello); return; }
   const io = { explainOn: $('explain').checked, out: t => con.out(t), explain: (l, m, q) => con.explain(l, m, q), warn: (l, t) => con.warn(l, t) };
@@ -1837,7 +2701,58 @@ async function run() {
     con.flush(); con.error(e, code); con.sys('✖ Program stopped because of the problem above.');
   } finally { running = null; setRunUI(false); }
 }
-function setRunUI(on) {
+function buildDoc(title, css, body) {
+  return `<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>${escapeHtml(title || 'My page')}</title>\n  <style>\n  /* Simple HTML's default look */\n  ${H_BASE_CSS}\n${css ? '\n  /* your styles */\n' + css.split('\n').map(l => '  ' + l).join('\n') + '\n' : ''}  </style>\n</head>\n<body>\n${body}\n</body>\n</html>\n`;
+}
+let markupTimer = null;
+function runMarkup(auto) {
+  showTab('console');
+  const code = ta.value, kind = L().kind, explainOn = $('explain').checked;
+  const keepScroll = auto ? conEl.scrollTop : 0;
+  errLine = null; refresh();
+  con.clear();
+  const exps = [], warns = [];
+  const io = { explain: (l, m) => { if (explainOn && exps.length < 300) exps.push([l, m]); }, warn: (l, t) => warns.push(t) };
+  let doc, real, realName, note = '';
+  try {
+    if (kind === 'html') {
+      const r = compileSimpleHTML(code, io);
+      doc = buildDoc(r.title, r.css, r.html); real = doc; realName = fixName($('fname').value).replace(/\.\w+$/, '') + '.html';
+    } else {
+      const r = compileSimpleCSS(code, io);
+      let pageCode = null; try { pageCode = localStorage.getItem('simplehtml.code'); } catch (e) {}
+      let page;
+      try { page = compileSimpleHTML(pageCode && pageCode.trim() ? pageCode : H_DEMO, { explain() {}, warn() {} }); note = pageCode && pageCode.trim() ? 'your Simple HTML page' : 'a sample page'; }
+      catch (e) { page = compileSimpleHTML(H_DEMO, { explain() {}, warn() {} }); note = 'a sample page (your Simple HTML page has a mistake)'; }
+      doc = buildDoc(page.title, (page.css ? page.css + '\n\n' : '') + r.css, page.html);
+      real = r.css || '/* (no styles yet) */'; realName = fixName($('fname').value).replace(/\.\w+$/, '') + '.css';
+    }
+  } catch (e) {
+    con.error(e, code); con.sys('✖ Fix the problem above and the preview will come back.');
+    return;
+  }
+  con.sys(`▶ ${auto ? 'Live preview' : 'Preview'} of ${$('fname').value}${kind === 'css' ? ' — shown on ' + note : ''}${explainOn ? '  ·  explain mode ON' : ''}`);
+  const wrap = con.block('c-preview', '<div class="bar"><span>🌐 Your page</span><span class="grow"></span><button class="btn small" data-act="open">Open in new tab</button></div>');
+  const fr = document.createElement('iframe');
+  fr.setAttribute('sandbox', 'allow-scripts allow-modals allow-popups allow-popups-to-escape-sandbox');
+  fr.setAttribute('title', 'Page preview');
+  fr.srcdoc = doc;
+  wrap.appendChild(fr);
+  wrap.querySelector('[data-act=open]').onclick = () => { const w = window.open(URL.createObjectURL(new Blob([doc], { type: 'text/html' }))); if (!w) alert('Your browser blocked the new tab.'); };
+  for (const t of warns) con.warn(null, t);
+  for (const [l, m] of exps) con.explain(l, m);
+  const d = con.block('', `<details class="c-real"><summary>🔍 Show the real ${kind === 'html' ? 'HTML' : 'CSS'} this made</summary><pre></pre><button class="btn small" data-act="dl">⬇ Download ${escapeHtml(realName)}</button></details>`);
+  d.querySelector('pre').textContent = real;
+  d.querySelector('[data-act=dl]').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([real], { type: kind === 'html' ? 'text/html' : 'text/css' })); a.download = realName; document.body.appendChild(a); a.click(); a.remove(); };
+  con.sys(`✔ ${kind === 'html' ? 'Page built' : 'Styles applied'}${explainOn ? '' : ' (turn on Explain mode to see what each line did)'}.`, true);
+  conEl.scrollTop = auto ? keepScroll : 0;
+}
+ta.addEventListener('input', () => {
+  if (L().kind !== 'html' && L().kind !== 'css') return;
+  clearTimeout(markupTimer); markupTimer = setTimeout(() => runMarkup(true), 700);
+});
+
+var setRunUI = function (on) {
   const b = $('runBtn');
   b.textContent = on ? '■ Stop' : '▶ Run';
   b.classList.toggle('stop', on);
@@ -1855,7 +2770,8 @@ $('runBtn').addEventListener('click', run);
 
 /* ---------- files ---------- */
 let dirty = false;
-function fixName(n) { n = (n || 'main').trim().replace(/[\\/:*?"<>|]/g, '_').replace(/\.(scpp|sc|cpp|c|txt)$/i, ''); return n + L().ext; }
+const ALL_EXTS = ['scpp', 'sc', 'spy', 'sjs', 'scs', 'sswift', 'sbin', 'shtml', 'sss', 'cpp', 'c', 'py', 'js', 'cs', 'swift', 'html', 'htm', 'css', 'txt'];
+function fixName(n) { n = (n || 'main').trim().replace(/[\\/:*?"<>|]/g, '_').replace(new RegExp('\\.(' + ALL_EXTS.join('|') + ')$', 'i'), ''); return (n || 'main') + L().ext; }
 function saveFile() {
   const name = fixName($('fname').value); $('fname').value = name;
   const blob = new Blob([ta.value], { type: 'text/plain' });
@@ -1866,7 +2782,8 @@ function saveFile() {
 function loadText(name, text) { ta.value = text; $('fname').value = fixName(name); errLine = null; refresh(); ta.scrollTop = 0; syncScroll(); dirty = false; }
 function openFile(file) {
   if (!file) return;
-  const want = /\.(sc|c)$/i.test(file.name) ? 'c' : /\.(scpp|cpp)$/i.test(file.name) ? 'cpp' : LANG;
+  const ext = (/\.(\w+)$/.exec(file.name) || [])[1]; const lx = ext && ext.toLowerCase();
+  const want = Object.keys(LANGS).find(k => LANGS[k].ext === '.' + lx || (LANGS[k].realExts || []).includes(lx)) || LANG;
   const r = new FileReader();
   r.onload = () => { if (want !== LANG) setLang(want, true); loadText(file.name, String(r.result)); };
   r.readAsText(file);
@@ -1874,7 +2791,7 @@ function openFile(file) {
 $('saveBtn').addEventListener('click', saveFile);
 $('openBtn').addEventListener('click', () => $('fileIn').click());
 $('fileIn').addEventListener('change', e => { openFile(e.target.files[0]); e.target.value = ''; });
-$('newBtn').addEventListener('click', () => { if (dirty && !confirm('Start a new file? Unsaved changes will be lost.')) return; loadText('main', `// My new ${L().name} program\n\n${L().hello}\n`); ta.focus(); });
+$('newBtn').addEventListener('click', () => { if (dirty && !confirm('Start a new file? Unsaved changes will be lost.')) return; loadText('main', `${L().comment} My new ${L().name} ${L().kind === 'code' ? 'program' : L().kind === 'html' ? 'page' : 'styles'}\n\n${L().hello}\n`); ta.focus(); });
 $('fname').addEventListener('change', () => { $('fname').value = fixName($('fname').value); save(); });
 const box = $('editorBox');
 ['dragenter', 'dragover'].forEach(ev => box.addEventListener(ev, e => { e.preventDefault(); box.classList.add('dragging'); }));
@@ -1884,7 +2801,7 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && document.activeElement !== ta) { e.preventDefault(); run(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && document.activeElement !== ta) { e.preventDefault(); saveFile(); }
 });
-function save() { try { localStorage.setItem(L().key + '.code', ta.value); localStorage.setItem(L().key + '.name', $('fname').value); localStorage.setItem('simplycpp.explain', $('explain').checked ? '1' : '0'); localStorage.setItem('simplycpp.lang', LANG); } catch (e) {} }
+function save() { try { if (!document.body.dataset.lang) return; localStorage.setItem(L().key + '.code', ta.value); localStorage.setItem(L().key + '.name', $('fname').value); localStorage.setItem('simplycpp.explain', $('explain').checked ? '1' : '0'); localStorage.setItem('simplycpp.lang', LANG); } catch (e) {} }
 $('explain').addEventListener('change', save);
 
 /* ---------- examples ---------- */
@@ -2250,52 +3167,116 @@ sel.addEventListener('change', () => {
   con.clear(); conEl.innerHTML = `<div class="empty">Loaded <b>${escapeHtml(k)}</b>. Press <b>▶ Run</b>!</div>`;
 });
 
-/* ---------- start ---------- */
+const PY_EXAMPLES = {"👋 Hello, Simple Python": "# Welcome to Simple Python!  Press ▶ Run (or Ctrl/⌘ + Enter).\n# In Python, the spaces at the start of a line matter.\n\nprint(\"Hello, world!\")\nprint(\"hi\" + \"hi\")             # glue text together with +\nprint(\"Ha\" * 3)                # repeat text with *\n\nname = \"Sam\"\nage = 12\nprint(\"My name is \" + name + \" and I am \" + age + \" years old.\")   # Simple Python lets you + numbers to text!\nprint(f\"Next year I'll be {age + 1}\")                                # an f-string fills in the { }\n", "🔁 Loops": "# Count from 0 to 4 (range stops BEFORE the last number)\nfor i in range(5):\n    print(\"Counting:\", i)\n\n# Simple Python bonus: count 1 to 5, including 5\nfor n in 1 to 5:\n    print(n, end=\" \")\nprint()\n\n# Do something 3 times\nrepeat 3:\n    print(\"Hip hip hooray!\")\n\nfuel = 3\nwhile fuel > 0:\n    print(\"Vroom! fuel =\", fuel)\n    fuel -= 1\nprint(\"Out of fuel.\")\n", "📋 Lists": "snacks = [\"chips\", \"apple\", \"cookie\"]\nsnacks.append(\"pretzel\")\nprint(snacks)\nprint(\"First:\", snacks[0], \" Last:\", snacks[-1])\nprint(\"How many:\", len(snacks))\nprint(\"Middle two:\", snacks[1:3])\n\nfor s in snacks:\n    print(\"I like \" + s)\n\nscores = [72, 95, 88, 61]\nscores.sort()\nprint(scores, \"best:\", max(scores), \"total:\", sum(scores))\nprint(\"Has 95?\", 95 in scores)\nprint(\", \".join(snacks))\n", "🧩 Functions": "def greet(name):\n    print(\"Hello, \" + name + \"!\")\n\ndef add(a, b=10):\n    return a + b\n\ngreet(\"Ava\")\nprint(add(2, 3))\nprint(add(5))          # b uses its default: 10\n\ndef grade(score):\n    if score >= 90:\n        return \"A\"\n    elif score >= 80:\n        return \"B\"\n    else:\n        return \"keep trying\"\n\nprint(grade(95), grade(85), grade(50))\n", "🎲 Guess the number (input)": "import random\n\nsecret = random.randint(1, 20)\ntries = 0\nprint(\"I'm thinking of a number from 1 to 20...\")\n\nguess = 0\nwhile guess != secret:\n    guess = int(input(\"Your guess: \"))\n    tries += 1\n    if guess < secret:\n        print(\"Too low!\")\n    elif guess > secret:\n        print(\"Too high!\")\n\nprint(f\"🎉 You got it in {tries} tries!\")\n", "💥 Oops! (see an error explained)": "# This program has a mistake on purpose.\n# Press Run and read how the console explains it.\n\nscore = 10\nif score > 5:\nprint(\"Big score!\")\n"};
+const JS_EXAMPLES = {"👋 Hello, Simple JavaScript": "// Welcome to Simple JavaScript!  Press ▶ Run (or Ctrl/⌘ + Enter).\n\nconsole.log(\"Hello, world!\");\nconsole.log(\"hi\" + \"hi\");          // glue text together with +\nprint \"Ha\" * 3                     // Simple JS bonus: repeat text with *\n\nlet name = \"Sam\";\nconst age = 12;                    // const = can never change\nconsole.log(\"My name is \" + name + \" and I am \" + age);\nconsole.log(`Next year I'll be ${age + 1}`);   // backticks fill in ${ }\n", "🔁 Loops & arrays": "let fruits = [\"apple\", \"banana\"];\nfruits.push(\"cherry\");\nconsole.log(fruits, fruits.length);\n\nfor (const fruit of fruits) {\n    console.log(\"I like \" + fruit);\n}\n\nfor (let i = 0; i < 3; i++) {\n    console.log(\"i is \" + i);\n}\n\nlet n = 3;\nwhile (n > 0) {\n    console.log(\"Countdown: \" + n);\n    n--;\n}\nconsole.log(fruits.join(\" + \"), fruits.includes(\"banana\"));\n", "🧩 Functions": "function add(a, b) {\n    return a + b;\n}\n\nfunction greet(name) {\n    console.log(`Hello, ${name}!`);\n}\n\ngreet(\"Ava\");\nconsole.log(add(2, 3));\nconsole.log(\"Random 1-10:\", Math.floor(Math.random() * 10) + 1);\nconsole.log(\"Square root of 81:\", Math.sqrt(81));\nconsole.log(typeof 42, typeof \"hi\");\n", "🎲 Guess the number (input)": "let secret = Math.floor(Math.random() * 20) + 1;\nlet tries = 0;\nlet guess = 0;\nconsole.log(\"I'm thinking of a number from 1 to 20...\");\n\nwhile (guess !== secret) {\n    guess = parseInt(prompt(\"Your guess:\"));\n    tries++;\n    if (guess < secret) {\n        console.log(\"Too low!\");\n    } else if (guess > secret) {\n        console.log(\"Too high!\");\n    }\n}\nconsole.log(`🎉 You got it in ${tries} tries!`);\n", "💥 Oops! (see an error explained)": "// This program has mistakes on purpose.\n// Real JavaScript would print NaN or undefined. Simple JS explains instead.\n\nconst lives = 3;\nlives = lives - 1;\nconsole.log(lives);\n"};
+const CS_EXAMPLES = {"👋 Hello, Simple C#": "// Welcome to Simple C#!  Press ▶ Run (or Ctrl/⌘ + Enter).\n// No class, no Main, no semicolons needed.\n\nConsole.WriteLine(\"Hello, world!\")\nprint \"hi\" + \"hi\"                    // Simple C# shortcut for printing\nprint \"Ha\" * 3                       // repeat text with *\n\nstring name = \"Sam\"\nint age = 12\nConsole.WriteLine(\"My name is \" + name + \" and I am \" + age)\nConsole.WriteLine($\"Next year I'll be {age + 1}\")    // $\"...\" fills in { }\n", "📋 Lists & loops": "List<string> pets = new List<string> { \"cat\", \"dog\" };\npets.Add(\"hamster\");\nConsole.WriteLine(\"I have \" + pets.Count + \" pets\");\n\nforeach (var pet in pets)\n{\n    Console.WriteLine(\"I love my \" + pet);\n}\n\nint[] scores = { 90, 72, 85 };\nint total = 0;\nfor (int i = 0; i < scores.Length; i++)\n{\n    total += scores[i];\n}\nConsole.WriteLine(\"Average: \" + Math.Round(total / 3.0, 1));\nConsole.WriteLine(string.Join(\", \", pets));\n", "🎲 Guess the number (input)": "Random rnd = new Random();\nint secret = rnd.Next(1, 21);\nint tries = 0;\nint guess = 0;\nConsole.WriteLine(\"I'm thinking of a number from 1 to 20...\");\n\nwhile (guess != secret)\n{\n    Console.Write(\"Your guess: \");\n    guess = int.Parse(Console.ReadLine());\n    tries++;\n    if (guess < secret) Console.WriteLine(\"Too low!\");\n    else if (guess > secret) Console.WriteLine(\"Too high!\");\n}\nConsole.WriteLine($\"🎉 You got it in {tries} tries!\");\n", "🏛️ Classic C# (still works)": "using System;\n\nnamespace HelloApp\n{\n    class Program\n    {\n        static int Square(int n)\n        {\n            return n * n;\n        }\n\n        static void Main(string[] args)\n        {\n            string name = \"World\";\n            Console.WriteLine(\"Hello, \" + name + \"!\");\n            for (int i = 1; i <= 3; i++)\n            {\n                Console.WriteLine(\"{0} squared is {1}\", i, Square(i));\n            }\n        }\n    }\n}\n", "💥 Oops! (see an error explained)": "// This program has a mistake on purpose.\n\nint age = \"twelve\";\nConsole.WriteLine(age);\n"};
+const SWIFT_EXAMPLES = {"👋 Hello, Simple Swift": "// Welcome to Simple Swift!  Press ▶ Run (or Ctrl/⌘ + Enter).\n\nprint(\"Hello, world!\")\nprint(\"hi\" + \"hi\")              // glue text together with +\nprint(\"Ha\" * 3)                 // Simple Swift bonus: repeat text with *\n\nlet name = \"Sam\"                // let = can never change\nvar age = 12                    // var = can change\nprint(\"My name is \\(name) and I am \\(age)\")    // \\( ) fills in a value\nage += 1\nprint(\"Next year I'll be \" + age)               // Simple Swift lets you + numbers to text\n", "🔁 Loops & arrays": "var fruits = [\"apple\", \"banana\"]\nfruits.append(\"cherry\")\nprint(fruits, fruits.count)\n\nfor fruit in fruits {\n    print(\"I like \\(fruit)\")\n}\n\nfor i in 1...3 {                // 1, 2, 3\n    print(\"Lap \\(i)\")\n}\nfor i in 0..<3 {                // 0, 1, 2 (stops before 3)\n    print(i, terminator: \" \")\n}\nprint(\"\")\n\nvar count = 0\nrepeat {\n    count += 1\n} while count < 3\nprint(\"count is \\(count)\")\n", "🧩 Functions": "func greet(name: String) {\n    print(\"Hello, \\(name)!\")\n}\n\nfunc add(_ a: Int, _ b: Int) -> Int {\n    return a + b\n}\n\ngreet(name: \"Ava\")\nprint(add(2, 3))\n\nlet roll = Int.random(in: 1...6)\nprint(\"You rolled a \\(roll)\")\n", "🎲 Guess the number (input)": "let secret = Int.random(in: 1...20)\nvar tries = 0\nvar guess = 0\nprint(\"I'm thinking of a number from 1 to 20...\")\n\nwhile guess != secret {\n    print(\"Your guess:\")\n    guess = Int(readLine()!) ?? 0\n    tries += 1\n    if guess < secret {\n        print(\"Too low!\")\n    } else if guess > secret {\n        print(\"Too high!\")\n    }\n}\nprint(\"🎉 You got it in \\(tries) tries!\")\n", "💥 Oops! (see an error explained)": "// This program has a mistake on purpose.\n\nlet lives = 3\nlives = lives - 1\nprint(lives)\n"};
+const BIN_EXAMPLES = {"👋 Hello, Simple Binary": "// Welcome to Simple Binary! Computers store every number as 0s and 1s.\n// Turn on Explain mode to see how each binary number adds up.\n\nint a = 0b1101            // 0b means \"this is binary\"\nprint \"0b1101 is \" + a\n\nprint \"13 in binary is \" + toBinary(13)\nprint \"As 8 bits: \" + toBinary(13, 8)\nprint \"Binary 101 is \" + dec(\"101\")\n", "🔀 Bit magic (AND, OR, XOR)": "int a = 0b1100      // 12\nint b = 0b1010      // 10\n\nprint \"a AND b = \" + toBinary(a & b)    // 1 only where BOTH are 1\nprint \"a OR  b = \" + toBinary(a | b)    // 1 where EITHER is 1\nprint \"a XOR b = \" + toBinary(a ^ b)    // 1 where they are DIFFERENT\n", "⬅️ Shifting": "int n = 0b0011       // 3\nprint n << 1          // shift left = times 2\nprint n << 2          // times 4\nprint 0b1000 >> 3     // shift right = divide by 2 each step\n", "🔢 Count in binary": "for i in 0 to 15 {\n    print i + \" = \" + toBinary(i, 4)\n}\n", "🎨 Hex colors": "// Web colors are 3 numbers (red, green, blue) from 0 to 255, written in hex\nint red = 255\nint green = 136\nint blue = 0\nprint \"#\" + hex(red) + hex(green) + hex(blue)\nprint \"0xFF is \" + 0xFF\nprint \"255 in binary is \" + toBinary(255)\n", "🧮 Binary calculator": "scan \"First binary number: \" first\nscan \"Second binary number: \" second\nint a = dec(first)\nint b = dec(second)\nprint first + \" + \" + second + \" = \" + toBinary(a + b)\nprint \"(that's \" + a + \" + \" + b + \" = \" + (a + b) + \")\"\n"};
+const HTML_EXAMPLES = {"👋 My first page": "page \"My First Page\"\ntitle Hello, world!\nsubtitle I made this with Simple HTML\ntext Every line starts with a word that says what to make.\ntext You can write **bold** and *slanted* words too.\nimage https://picsum.photos/seed/simple/480/220 \"A random photo\"\nbutton \"Click me\" says \"You clicked the button!\"\nlink \"What is HTML?\" https://developer.mozilla.org/en-US/docs/Learn/HTML\n", "🗂️ Boxes, rows & cards": "page \"Cards\"\ntitle My Favorite Things [center]\nrow\n    card\n        heading 🍕 Food\n        text Pizza with extra cheese\n    card\n        heading 🎮 Game\n        text Minecraft\n    card\n        heading 🎵 Music\n        text Anything with drums\nline\ntext Indent lines (4 spaces) to put things inside a box. [center, gray]\n", "📋 Lists & tables": "title Shopping list\nlist\n    - Apples\n    - Bread\n    - Milk\nsubtitle Steps\nnumbered list\n    - Open the box\n    - Read the manual\n    - Build the robot\nsubtitle Scores\ntable\n    | Player | Points |\n    | Ava    | 120    |\n    | Leo    | 95     |\n", "🎨 Styles inside the page": "page \"Styled\"\ntitle Welcome! [center]\ntext This page has its own style section at the bottom.\nbutton \"Press me\" says \"Styled button!\"\n\nstyle\n    page:\n        background: light yellow\n        font: rounded\n    title:\n        color: tomato\n        size: 44\n    button:\n        background: tomato\n        color: white\n        round: 20\n        hover:\n            background: dark red\n", "📝 A sign-up form": "title Join the club!\ntext Fill this in:\ninput \"Your name\"\ninput \"Your email\"\ncheckbox I promise to have fun\nbutton \"Sign up\" says \"Welcome to the club! 🎉\"\n", "💥 Oops! (see an error explained)": "titel My page\ntext Hello!\n"};
+const CSS_EXAMPLES = {"👋 My first styles": "// Simple CSS styles your Simple HTML page (or a sample page if you haven't made one).\n// Name what to style, then indent the styles under it.\n\npage:\n    background: light blue\n    font: rounded\n\ntitle:\n    color: navy\n    size: 48\n    center\n\ntext:\n    size: 18\n", "🃏 Cards & buttons": "page:\n    background: #f4f1ea\n\ncard:\n    background: white\n    round: 16\n    shadow\n    padding: 20\n\nbutton:\n    background: mediumseagreen\n    color: white\n    round: 30\n    padding: 10 24\n    clickable\n    smooth\n    hover:\n        background: seagreen\n        scale: 1.08\n", "🌙 Dark mode": "page:\n    background: #121212\n    color: #eee\n    font: clean\n\ntitle and subtitle:\n    color: gold\n\nlink:\n    color: skyblue\n    no underline\n\nimage:\n    round: 16\n    border: 3 gold\n", "🏷️ Real CSS still works": "/* You can mix real CSS with Simple CSS */\nh1 {\n  color: crimson;\n  letter-spacing: 2px;\n}\n\ntext:\n    color: dimgray\n", "💥 Oops! (see an error explained)": "title:\n    colour: red\n"};
+const SHEETS = {"py": {"why": "It's Python with the sharp edges filed off. You can + numbers onto text, repeat with <code>repeat 3:</code>, count with <code>for i in 1 to 5:</code>, and every error comes with a plain-English fix. Real Python still works.", "rows": [["Print a line", "print(\"hi\")", "print(\"hi\")  or  print \"hi\""], ["Text + number", "\"Age: \" + str(5)", "\"Age: \" + 5"], ["Fill in text", "f\"Age: {age}\"", "f\"Age: {age}\" (same!)"], ["Ask the user", "input(\"Name? \")", "input(\"Name? \")"], ["Count 1 to 5", "for i in range(1, 6):", "for i in 1 to 5:"], ["Do it 3 times", "for _ in range(3):", "repeat 3:"], ["Lists", "nums = [1, 2]\nnums.append(3)", "same — plus nums.add(3)"], ["Last item", "nums[-1]", "nums[-1] (same)"], ["Functions", "def add(a, b):\n    return a + b", "same"], ["Mistakes", "Traceback (most recent call last)…", "a clear \"What happened / How to fix it\""]], "pills": [["Text tricks", [".upper()", ".lower()", ".strip()", ".split(\",\")", ".replace(\"a\",\"b\")", ".find(\"x\")", ".startswith(\"x\")", "\", \".join(list)", "len(s)", "s[1:3]"]], ["List tricks", [".append(x)", ".pop()", ".remove(x)", ".insert(i, x)", ".sort()", ".reverse()", ".index(x)", ".count(x)", "len(l)", "sum(l)", "max(l)", "min(l)", "sorted(l)", "x in l"]], ["Built-ins", ["print()", "input()", "int()", "float()", "str()", "range()", "abs()", "round(x, 2)", "random.randint(1, 6)", "random.choice(l)", "math.sqrt(x)", "x ** 2", "x // 2"]]]}, "js": {"why": "It's JavaScript without the weird surprises. <code>\"5\" - 2</code> gives a clear error instead of a strange number, <code>prompt()</code> asks in the console, and semicolons are optional. Real JavaScript still works.", "rows": [["Print a line", "console.log(\"hi\");", "console.log(\"hi\")  or  print \"hi\""], ["Make a variable", "let x = 5;", "let x = 5"], ["Never changes", "const PI = 3.14;", "same"], ["Fill in text", "`Age: ${age}`", "same"], ["Ask the user", "prompt(\"Name?\")", "prompt(\"Name?\") — answer in the console"], ["Loop over a list", "for (const x of list)", "same, or for x in list"], ["Count 1 to 5", "for (let i = 1; i <= 5; i++)", "for i in 1 to 5"], ["Repeat text", "\"ha\".repeat(3)", "\"ha\" * 3"], ["Mistakes", "NaN, undefined…", "a clear explanation"]], "pills": [["Text tricks", [".length", ".toUpperCase()", ".toLowerCase()", ".includes(\"x\")", ".indexOf(\"x\")", ".replace(\"a\",\"b\")", ".split(\",\")", ".trim()", ".slice(0, 3)"]], ["Array tricks", [".push(x)", ".pop()", ".length", ".includes(x)", ".indexOf(x)", ".join(\", \")", ".sort()", ".reverse()", ".slice(1, 3)"]], ["Built-ins", ["console.log()", "prompt()", "alert()", "parseInt()", "parseFloat()", "Math.random()", "Math.floor()", "Math.round()", "Math.sqrt()", "Math.max()", "typeof x"]]]}, "cs": {"why": "It's C# without the ceremony. No <code>class Program</code>, no <code>static void Main</code>, no semicolons needed — just start writing. Real C# with classes and Main still works.", "rows": [["Print a line", "Console.WriteLine(\"hi\");", "Console.WriteLine(\"hi\")  or  print \"hi\""], ["Start a program", "class Program { static void Main() {…} }", "just write code"], ["Fill in text", "$\"Age: {age}\"", "same"], ["Ask the user", "Console.ReadLine();", "same — answer in the console"], ["Text → number", "int.Parse(s)", "same, or toInt(s)"], ["A list", "new List<int> { 1, 2 }", "same, or list v = [1, 2]"], ["Loop over a list", "foreach (var x in list)", "same"], ["Count 1 to 5", "for (int i = 1; i <= 5; i++)", "for i in 1 to 5"], ["Divide", "7 / 2 → 3", "7 / 2 → 3.5"]], "pills": [["Text tricks", [".Length", ".ToUpper()", ".ToLower()", ".Contains(\"x\")", ".IndexOf(\"x\")", ".Replace(\"a\",\"b\")", ".Split(',')", ".Trim()", ".Substring(0, 3)", "string.Join(\", \", list)"]], ["List tricks", [".Add(x)", ".Remove(x)", ".RemoveAt(i)", ".Insert(i, x)", ".Count", ".Contains(x)", ".IndexOf(x)", ".Sort()", ".Reverse()", ".Clear()"]], ["Built-ins", ["Console.WriteLine()", "Console.Write()", "Console.ReadLine()", "int.Parse()", "double.Parse()", "Math.Sqrt()", "Math.Pow()", "Math.Round()", "new Random().Next(1, 7)"]]]}, "swift": {"why": "It's Swift without the scary optionals. <code>readLine()</code> just gives you text, <code>!</code> and <code>??</code> still work, and you can + numbers onto text. Real Swift still works.", "rows": [["Print a line", "print(\"hi\")", "print(\"hi\")"], ["Can change", "var x = 5", "same"], ["Never changes", "let x = 5", "same"], ["Fill in text", "\"Age: \\(age)\"", "same"], ["Text + number", "\"Age: \" + String(age)", "\"Age: \" + age"], ["Ask the user", "readLine()!", "readLine() — answer in the console"], ["Count 1 to 5", "for i in 1...5", "same, or for i in 1 to 5"], ["Stop before 5", "for i in 0..<5", "same"], ["Random", "Int.random(in: 1...6)", "same, or random(1, 6)"]], "pills": [["Text tricks", [".count", ".uppercased()", ".lowercased()", ".contains(\"x\")", ".hasPrefix(\"x\")", ".split(\",\")", ".reversed()", ".isEmpty"]], ["Array tricks", [".append(x)", ".count", ".first", ".last", ".contains(x)", ".remove(at: i)", ".insert(x, at: i)", ".sort()", ".sorted()", ".joined(separator: \", \")", ".isEmpty"]], ["Built-ins", ["print(a, b, terminator: \"\")", "readLine()", "Int(\"5\")", "Double(\"2.5\")", "String(5)", "Int.random(in: 1...6)", "min(a, b)", "max(a, b)", "abs(x)"]]]}, "binary": {"why": "Simple Binary is a playground for how computers really store numbers: as 0s and 1s. Write binary with <code>0b1010</code>, convert with <code>toBinary</code> and <code>dec</code>, and turn on Explain mode to see every bit added up.", "rows": [["Write a binary number", "0b1101", "0b1101  (= 13)"], ["Number → binary", "—", "toBinary(13) → \"1101\""], ["Fixed number of bits", "—", "toBinary(13, 8) → \"00001101\""], ["Binary → number", "—", "dec(\"1101\") → 13"], ["Hexadecimal", "0xFF", "0xFF, hex(255) → \"FF\""], ["AND", "a & b", "1 only where both bits are 1"], ["OR", "a | b", "1 where either bit is 1"], ["XOR", "a ^ b", "1 where the bits are different"], ["NOT", "~a", "flips every bit"], ["Shift", "a << 1, a >> 1", "× 2 and ÷ 2"]], "pills": [["Place values (right to left)", ["1", "2", "4", "8", "16", "32", "64", "128"]], ["Helpers", ["toBinary(n)", "toBinary(n, bits)", "dec(\"101\")", "hex(n)", "fromHex(\"FF\")", "bits(n)", "print", "scan", "for i in 0 to 15"]]]}, "html": {"why": "Simple HTML lets you build a web page with plain words, one thing per line. Indent lines (4 spaces) to put things inside a box. Press Run to see the page — and the real HTML it made.", "rows": [["Page name (tab)", "<title>Hi</title>", "page \"Hi\""], ["Big heading", "<h1>Hello</h1>", "title Hello"], ["Smaller headings", "<h2>, <h3>", "subtitle …, heading …"], ["Paragraph", "<p>Some text</p>", "text Some text"], ["Bold / slanted", "<b>bold</b>, <i>slanted</i>", "**bold**, *slanted*"], ["Picture", "<img src=\"cat.jpg\" alt=\"Cat\">", "image cat.jpg \"Cat\""], ["Link", "<a href=\"https://…\">Go</a>", "link \"Go\" https://…"], ["Button that talks", "<button onclick=\"alert('Hi')\">", "button \"Click\" says \"Hi\""], ["Bullet list", "<ul><li>A</li></ul>", "list\n    - A"], ["Side by side", "<div style=\"display:flex\">", "row"], ["Quick style", "style=\"color:red;text-align:center\"", "title Hi [red, center]"]], "pills": [["Words that make things", ["page", "title", "subtitle", "heading", "text", "image", "link", "button", "input", "checkbox", "list", "numbered list", "item / -", "box", "row", "column", "card", "line", "space", "table", "quote", "code", "youtube", "video", "style"]], ["Quick styles in [ ]", ["center", "left", "right", "bold", "italic", "underline", "big", "huge", "small", "round", "shadow", "border", "padded", "hidden", "any color", "bg yellow", "300 (width)"]]]}, "css": {"why": "Simple CSS styles your page with plain words. Name what to style, end the line with <code>:</code>, then indent the styles underneath. Numbers become pixels automatically, and color names can have spaces.", "rows": [["Style the whole page", "body { … }", "page:"], ["Style headings", "h1 { … }", "title:"], ["Text color", "color: red;", "color: red"], ["Background", "background: lightblue;", "background: light blue"], ["Text size", "font-size: 24px;", "size: 24"], ["Center text", "text-align: center;", "center"], ["Rounded corners", "border-radius: 12px;", "round: 12  or  round"], ["Shadow", "box-shadow: 0 4px 14px …;", "shadow"], ["Border", "border: 2px solid black;", "border: 2 black"], ["On mouse-over", "button:hover { … }", "hover: (indented inside)"], ["Two at once", "h1, h2 { … }", "title and subtitle:"]], "pills": [["Things to style", ["page", "title", "subtitle", "heading", "text", "image", "link", "button", "input", "box", "row", "column", "card", "list", "item", "table", ".myclass", "#myid", "everything"]], ["Style names", ["color", "background", "size", "font", "align", "width", "height", "round", "border", "padding (space inside)", "margin (space outside)", "gap", "shadow", "opacity", "weight", "layout: row"]], ["One-word styles", ["center", "bold", "italic", "underline", "uppercase", "round", "circle", "shadow", "clickable", "smooth", "hidden", "no underline"]], ["Fonts", ["rounded", "fancy", "code", "typewriter", "book", "clean", "comic", "impact"]]]}};
+
 /* ---------- languages ---------- */
+function badge(glyph, size) {
+  const fs = size || (glyph.length >= 3 ? 250 : glyph.length === 2 ? 300 : 380);
+  const esc = glyph.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1000"><defs><clipPath id="h"><path d="M450 70 830 290V710L450 930 70 710V290Z"/></clipPath></defs>` +
+    `<g clip-path="url(#h)"><rect width="900" height="1000" fill="#111"/><path d="M0 0H900V360L0 860Z" fill="#3b3b3b"/></g>` +
+    `<text x="450" y="${600 + fs * 0.3}" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="${fs}" fill="#fff">${esc}</text>` +
+    `<text x="450" y="215" text-anchor="middle" font-family="Arial Rounded MT Bold, Arial Black, Arial, sans-serif" font-weight="900" font-size="160" fill="#fff" stroke="#000" stroke-width="24" paint-order="stroke" stroke-linejoin="round">Simple</text></svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
 const LANGS = {
-  cpp: { name: 'Simply C++', short: 'C++', ext: '.scpp', key: 'simplycpp', logo: 'logo-cpp.png', hello: 'cout "Hello!"', hash: '#cpp',
-         tagline: 'C++ for dummies — friendlier rules, and the console explains every step.', examples: EXAMPLES },
-  c:   { name: 'Simple C', short: 'C', ext: '.sc', key: 'simplec', logo: 'logo-c.png', hello: 'print "Hello!"', hash: '#c',
-         tagline: 'C for dummies — real text strings, no crashes, and the console explains every step.', examples: C_EXAMPLES },
+  cpp:    { name: 'Simply C++', short: 'C++', ext: '.scpp', realExts: ['cpp', 'cc', 'hpp'], key: 'simplycpp', logo: 'logo-cpp.png', hello: 'cout "Hello!"', comment: '//', kind: 'code', examples: EXAMPLES,
+            tagline: 'C++ for dummies — friendlier rules, and the console explains every step.' },
+  c:      { name: 'Simple C', short: 'C', ext: '.sc', realExts: ['c', 'h'], key: 'simplec', logo: 'logo-c.png', hello: 'print "Hello!"', comment: '//', kind: 'code', examples: C_EXAMPLES,
+            tagline: 'C for dummies — real text strings, no crashes, and the console explains every step.' },
+  py:     { name: 'Simple Python', short: 'Python', ext: '.spy', realExts: ['py'], key: 'simplepy', logo: badge('Py'), hello: 'print("Hello!")', comment: '#', kind: 'code', examples: PY_EXAMPLES,
+            tagline: 'Python for dummies — friendly errors, + works on everything, and the console explains every step.' },
+  js:     { name: 'Simple JavaScript', short: 'JavaScript', ext: '.sjs', realExts: ['js', 'mjs'], key: 'simplejs', logo: badge('JS'), hello: 'console.log("Hello!")', comment: '//', kind: 'code', examples: JS_EXAMPLES,
+            tagline: 'JavaScript for dummies — no NaN surprises, and the console explains every step.' },
+  cs:     { name: 'Simple C#', short: 'C#', ext: '.scs', realExts: ['cs'], key: 'simplecs', logo: badge('C#'), hello: 'Console.WriteLine("Hello!")', comment: '//', kind: 'code', examples: CS_EXAMPLES,
+            tagline: 'C# for dummies — no class or Main needed, and the console explains every step.' },
+  swift:  { name: 'Simple Swift', short: 'Swift', ext: '.sswift', realExts: ['swift'], key: 'simpleswift', logo: badge('Sw'), hello: 'print("Hello!")', comment: '//', kind: 'code', examples: SWIFT_EXAMPLES,
+            tagline: 'Swift for dummies — no scary optionals, and the console explains every step.' },
+  binary: { name: 'Simple Binary', short: 'Binary', ext: '.sbin', key: 'simplebin', logo: badge('01'), hello: 'print toBinary(13)', comment: '//', kind: 'code', examples: BIN_EXAMPLES,
+            tagline: 'Learn how computers count in 0s and 1s — every bit explained.' },
+  html:   { name: 'Simple HTML', short: 'HTML', ext: '.shtml', realExts: ['html', 'htm'], key: 'simplehtml', logo: badge('</>', 250), hello: 'title Hello!', comment: '//', kind: 'html', examples: HTML_EXAMPLES,
+            tagline: 'Build a web page with plain words — see it live, plus the real HTML it makes.' },
+  css:    { name: 'Simple CSS', short: 'CSS', ext: '.sss', realExts: ['css'], key: 'simplecss', logo: badge('{ }', 260), hello: 'page:\n    background: light blue', comment: '//', kind: 'css', examples: CSS_EXAMPLES,
+            tagline: 'Style your page with plain words — see it live, plus the real CSS it makes.' },
 };
+const LANG_ORDER = ['cpp', 'c', 'py', 'js', 'cs', 'swift', 'binary', 'html', 'css'];
 let LANG = 'cpp';
 const L = () => LANGS[LANG];
 function forLang(html) {
-  if (LANG !== 'c' || !html) return html;
-  return String(html).replace(/Simply C\+\+/g, 'Simple C').replace(/\bcout\b/g, 'print').replace(/\bcin\b/g, 'scan')
-    .replace(/C\+\+/g, 'C');
+  if (LANG === 'cpp' || !html) return html;
+  const l = L();
+  return String(html).replace(/Simply C\+\+/g, l.name).replace(/\bcout\b/g, 'print').replace(/\bcin\b/g, 'scan')
+    .replace(/\bauto (?=[A-Za-z_]\w* =)/g, DECL_WORD()).replace(/C\+\+/g, l.short);
 }
+// cheat sheets for the new languages
+(function buildSheets() {
+  const host = $('sheet');
+  for (const [lang, sh] of Object.entries(SHEETS)) {
+    const d = document.createElement('div'); d.dataset.sheet = lang; d.hidden = true;
+    const nm = LANGS[lang].name, real = LANGS[lang].short;
+    d.innerHTML = `<h2>Why ${escapeHtml(nm)}?</h2><p>${sh.why}</p>` +
+      `<h2>${lang === 'binary' ? 'Cheat sheet' : 'Real ' + escapeHtml(real) + ' vs ' + escapeHtml(nm)}</h2><table><tr><th>You want to…</th><th>${lang === 'binary' ? 'Looks like' : 'Real ' + escapeHtml(real)}</th><th>${escapeHtml(nm)}</th></tr>` +
+      sh.rows.map(r => `<tr><td>${escapeHtml(r[0])}</td><td class="old"><code>${escapeHtml(r[1])}</code></td><td class="new"><code>${escapeHtml(r[2])}</code></td></tr>`).join('') + '</table>' +
+      sh.pills.map(([h, items]) => `<h2>${escapeHtml(h)}</h2><div class="pills">${items.map(x => `<code>${escapeHtml(x)}</code>`).join('')}</div>`).join('');
+    host.appendChild(d);
+  }
+})();
+// language picker
+const menu = $('langMenu');
+menu.innerHTML = LANG_ORDER.map(k => `<button data-lang="${k}" role="menuitem"><img src="${LANGS[k].logo}" alt=""><span>${escapeHtml(LANGS[k].name)}</span><span class="ext">${LANGS[k].ext}</span></button>`).join('');
+const openMenu = (o) => {
+  menu.hidden = !o; $('langBtn').setAttribute('aria-expanded', o ? 'true' : 'false');
+  if (o) { const r = $('langBtn').getBoundingClientRect(); const fitsLeft = r.right - menu.offsetWidth >= 8; menu.style.right = fitsLeft ? '0' : 'auto'; menu.style.left = fitsLeft ? 'auto' : '0'; }
+};
+$('langBtn').addEventListener('click', e => { e.stopPropagation(); openMenu(menu.hidden); });
+menu.addEventListener('click', e => { const b = e.target.closest('button[data-lang]'); if (b) { openMenu(false); setLang(b.dataset.lang); } });
+document.addEventListener('click', e => { if (!menu.hidden && !e.target.closest('.picker')) openMenu(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') openMenu(false); });
+
 function setLang(lang, keepCode) {
   if (!LANGS[lang]) lang = 'cpp';
   if (lang === LANG && document.body.dataset.lang) return;
   if (running) running.stop();
   if (document.body.dataset.lang) save();
-  LANG = lang; document.body.dataset.lang = lang;
+  LANG = lang; RUN_LANG = lang; document.body.dataset.lang = lang;
   const l = L();
-  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  menu.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  $('langLogo').src = l.logo; $('langName').textContent = l.name;
   $('title').textContent = '· ' + l.name; $('tagline').textContent = l.tagline;
   $('extChip').textContent = 'files: ' + l.ext;
   $('saveBtn').textContent = 'Save ' + l.ext;
-  $('ver').textContent = l.name + ' 1.1';
+  $('ver').textContent = l.name + ' 2.0';
+  $('runBtn').textContent = l.kind === 'code' ? '▶ Run' : '▶ Preview';
   ta.setAttribute('aria-label', l.name + ' code');
   document.title = 'Simple Code · ' + l.name;
   document.querySelectorAll('[data-sheet]').forEach(d => d.hidden = d.dataset.sheet !== lang);
-  if (location.hash !== l.hash) history.replaceState(null, '', l.hash);
+  if (location.hash !== '#' + lang) history.replaceState(null, '', '#' + lang);
   fillExamples();
-  con.clear(); conEl.innerHTML = `<div class="empty">You're writing <b>${l.name}</b>. Press <b>▶ Run</b> to start your program.<br>With <b>Explain mode</b> on, I'll tell you what every line did — like a tutor sitting next to you.</div>`;
-  if (keepCode) return;
-  let code = null, name = null;
-  try { code = localStorage.getItem(l.key + '.code'); name = localStorage.getItem(l.key + '.name'); } catch (e) {}
-  loadText(name || 'main', code != null && code.trim() ? code : Object.values(l.examples)[0]);
+  con.clear(); conEl.innerHTML = `<div class="empty">You're writing <b>${l.name}</b>. Press <b>${l.kind === 'code' ? '▶ Run' : '▶ Preview'}</b> to ${l.kind === 'code' ? 'start your program' : 'see your page'}.<br>With <b>Explain mode</b> on, I'll tell you what every line did — like a tutor sitting next to you.${l.kind === 'css' ? '<br>Your styles are shown on your <b>Simple HTML</b> page (or a sample page if you haven\'t made one).' : ''}</div>`;
+  if (!keepCode) {
+    let code = null, name = null;
+    try { code = localStorage.getItem(l.key + '.code'); name = localStorage.getItem(l.key + '.name'); } catch (e) {}
+    loadText(name || 'main', code != null && code.trim() ? code : Object.values(l.examples)[0]);
+  } else refresh();
+  if (l.kind !== 'code') runMarkup(true);
 }
-document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
-window.addEventListener('hashchange', () => setLang(location.hash === '#c' ? 'c' : 'cpp'));
+window.addEventListener('hashchange', () => setLang(location.hash.slice(1)));
+const origSetRunUI = setRunUI;
+setRunUI = function (on) { origSetRunUI(on); if (!on) $('runBtn').textContent = L().kind === 'code' ? '▶ Run' : '▶ Preview'; };
 
 (function init() {
   let ex = null, saved = null;
   try { ex = localStorage.getItem('simplycpp.explain'); saved = localStorage.getItem('simplycpp.lang'); } catch (e) {}
   if (ex === '0') $('explain').checked = false;
-  setLang(location.hash === '#c' ? 'c' : location.hash === '#cpp' ? 'cpp' : (saved || 'cpp'));
+  const h = location.hash.slice(1);
+  setLang(LANGS[h] ? h : (saved && LANGS[saved] ? saved : 'cpp'));
 })();
 </script>
 </body>

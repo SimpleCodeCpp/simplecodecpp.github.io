@@ -1,26 +1,26 @@
-# Simple Code — Simply C++ & Simple C
+# Simple Code
 
-C++ and C for dummies, running right in your browser. Open `index.html`, pick a language at the top,
-write code, press **Run**. The console explains every line and every mistake in plain English.
+Nine beginner-friendly languages that run right in your browser. Open `index.html`
+(or https://simplecodecpp.github.io), pick a language at the top, write code, press **Run**.
+The console explains every line and every mistake in plain English.
 
-| Language   | File type | Print a line   | Input                 |
-|------------|-----------|----------------|-----------------------|
-| Simply C++ | `.scpp`   | `cout "hi"`    | `cin "Name? " name`   |
-| Simple C   | `.sc`     | `print "hi"`   | `scan "Age? " age`    |
+| Language          | File   | Print a line                  | What's simpler                                              |
+|-------------------|--------|-------------------------------|-------------------------------------------------------------|
+| Simply C++        | `.scpp`| `cout "hi"`                   | no `#include`/`main`/semicolons, `"a" + 5`, `for i in 1 to 5` |
+| Simple C          | `.sc`  | `print "hi"`                  | real strings, `==` on text, no crashes, friendly `printf`   |
+| Simple Python     | `.spy` | `print("hi")`                 | `+` works on everything, `repeat 3:`, clear indent errors   |
+| Simple JavaScript | `.sjs` | `console.log("hi")`           | no NaN/undefined surprises, `prompt()` in the console       |
+| Simple C#         | `.scs` | `Console.WriteLine("hi")`     | no class or `Main` needed                                   |
+| Simple Swift      | `.sswift` | `print("hi")`              | no optionals to fight, `"Age: " + age`                      |
+| Simple Binary     | `.sbin`| `print toBinary(13)`          | learn 0s and 1s — every bit explained                       |
+| Simple HTML       | `.shtml` | `title Hello!`              | plain words, live preview, shows the real HTML              |
+| Simple CSS        | `.sss` | `title:` / `color: red`       | plain words, live preview, shows the real CSS               |
 
-## What's simpler
-- No `#include`, no `main()`, no semicolons needed (all still allowed)
-- Glue text with `+`: `"hi" + "hi"`, `"Age: " + 5`; repeat with `"ha" * 3`
-- Real text strings in C too: `string name = "Sam"`, compare with `==`
-- `for i in 1 to 10`, `for x in myList`, `repeat 3 { }`
-- `list v = [1, 2, 3]`, `v.add(4)`, `v[-1]`, `v.size()`, `v.sum()`, `v.sort()`
-- `func add(a, b) { return a + b }`
-- `and` / `or` / `not`, `7 / 2` is 3.5, `random(1, 6)`
-- Simple C still understands `printf("%d\n", x)`, `scanf("%d", &x)`, `char name[50]`, `strlen`, `strcmp`…
+Real code in each language still works (classes, `main`, `#include`, `printf`, `Console.WriteLine`…),
+so you can grow into the real thing.
 
 Turn on **Explain mode** and every line tells you what it did. Errors show the line, what went wrong,
-and how to fix it (including "did you mean…?"). Out-of-bounds arrays and bad `printf` placeholders
-give clear errors instead of garbage.
+and how to fix it (including "did you mean…?").
 
-See `examples/` for sample `.scpp` and `.sc` programs, and the **Cheat sheet** tab in the app.
-Link straight to a language with `#cpp` or `#c` at the end of the URL.
+Link straight to a language by adding `#cpp`, `#c`, `#py`, `#js`, `#cs`, `#swift`, `#binary`,
+`#html` or `#css` to the address. Each language has built-in examples and a **Cheat sheet** tab.
