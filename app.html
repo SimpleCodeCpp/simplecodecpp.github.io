@@ -190,6 +190,38 @@ body.modal-open{overflow:hidden}
 .sh-site p{margin:0 0 10px;color:var(--muted);font-size:13.5px;font-weight:600}
 .sh-site>div:last-child{flex:1;min-width:0}
 @media (max-width:560px){.sh-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sh-site{flex-direction:column}.sh-qr{flex-direction:column;text-align:center}}
+/* ---- 🔌 connect AI ---- */
+.btn.ai{position:relative}
+.btn.ai::after{content:"";position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#555;display:none}
+.btn.ai[data-state=ready]::after,.btn.ai[data-state=agent]::after{display:block;background:#3fdc84;box-shadow:0 0 8px #3fdc84}
+.btn.ai[data-state=waiting]::after{display:block;background:#f5c542}
+.aibox{width:min(680px,100%)}
+.ai-lead{color:var(--muted);font-weight:600;margin:6px 0 14px;font-size:14.5px}
+.ai-switch{display:flex;align-items:center;gap:12px;background:#0c0c0e;border:1px solid var(--line2);border-radius:14px;padding:12px 14px;cursor:pointer;margin-bottom:6px}
+.ai-switch input{display:none}
+.ai-switch .sw{flex:none;width:46px;height:26px;border-radius:99px;background:#33333b;position:relative;transition:background .2s}
+.ai-switch .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.ai-switch input:checked+.sw{background:#2fbf71}.ai-switch input:checked+.sw::after{transform:translateX(20px)}
+.ai-switch b{display:block;font-size:15px}.ai-switch small{display:block;color:var(--muted);font-weight:700;font-size:13px;margin-top:2px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:0}
+.dot.on{background:#3fdc84;box-shadow:0 0 6px #3fdc84}.dot.wait{background:#f5c542}.dot.off{background:#666}
+.ai-step{display:flex;gap:12px;margin-top:16px}
+.ai-step>b{flex:none;width:28px;height:28px;border-radius:50%;background:#fff;color:#000;display:grid;place-items:center;font-weight:900}
+.ai-step>div{flex:1;min-width:0}
+.ai-step h3{margin:2px 0 4px;font-size:16px;font-weight:900}.ai-step h4{margin:14px 0 6px;font-size:13px;color:var(--muted)}
+.ai-step p{margin:0 0 8px;color:#c9c9d4;font-size:13.5px;font-weight:600}.ai-step a{color:#8fb4ff}
+.ai-step .muted{color:var(--muted);font-size:12.5px}
+.ai-code{position:relative;background:#000;border:1px solid var(--line);border-radius:10px;margin:0 0 8px}
+.ai-code pre{margin:0;padding:10px 70px 10px 12px;font:12.5px/1.5 var(--mono);color:#e8e8ee;white-space:pre-wrap;word-break:break-all;max-height:220px;overflow:auto}
+.ai-code button{position:absolute;top:7px;right:7px}
+.ai-apps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.ai-apps button{display:flex;flex-direction:column;align-items:center;gap:3px;background:#1b1b20;border:1px solid var(--line);border-radius:10px;padding:8px 4px;color:var(--text);font:800 12px var(--ui);cursor:pointer;text-align:center}
+.ai-apps button span{font-size:18px}.ai-apps button:hover{border-color:#6a6a78}.ai-apps button.on{border-color:#fff;background:#26262c}
+.ai-tools summary{cursor:pointer;font-weight:800;font-size:13.5px;color:#cfd6ff}
+.ai-tools ul{margin:6px 0;padding-left:4px;list-style:none;font-size:13.5px;font-weight:600;color:#c9c9d4}
+.ai-log{list-style:none;margin:0;padding:0;font:12.5px var(--mono);color:#c9c9d4;max-height:120px;overflow:auto}
+.ai-log li{padding:3px 0;border-bottom:1px solid #1f1f25}
+@media (max-width:560px){.ai-apps{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1c2330;color:#eef;border:1px solid #33415a;border-radius:12px;padding:10px 16px;font:600 14px var(--ui);z-index:9999;box-shadow:0 10px 30px #0008;transition:opacity .4s,transform .4s;max-width:90vw}
 .toast.out{opacity:0;transform:translate(-50%,10px)}
 .findbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;background:#15161b;border-bottom:1px solid var(--line)}
@@ -318,6 +350,7 @@ details.ch .langs{margin-left:auto;display:flex;gap:3px}details.ch .langs img{wi
   <select id="examples" aria-label="Examples"></select>
   <div class="picker" id="convPicker"><button class="btn" id="convBtn" title="Turn this program into another language">🔄 Convert</button><div class="langmenu convmenu" id="convMenu" hidden></div></div>
   <button class="btn share" id="shareBtn" title="Share your program">📤 Share</button>
+  <button class="btn ai" id="aiBtn" title="Let AI apps like Claude Code, Codex, OpenCode and OpenClaw use Simple Code">🔌 Connect AI</button>
   <div class="picker" id="toolsPicker"><button class="btn" id="toolsBtn" title="Handy tools">🧰 Tools</button><div class="langmenu toolsmenu" id="toolsMenu" hidden></div></div>
   <span class="grow"></span>
   <input class="fname" id="fname" value="main.scpp" aria-label="File name" spellcheck="false">
@@ -9962,6 +9995,176 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('shareMo
 $('shareBtn').addEventListener('click', openShare);
 // the logo goes back to the main page (on the website; the desktop app has no main page)
 if (!IS_DESKTOP && /^https?:$/.test(location.protocol)) { const bl = document.querySelector('header .brandlogo'); if (bl) { bl.style.cursor = 'pointer'; bl.setAttribute('title', 'Simple Code home'); bl.addEventListener('click', () => { location.href = 'index.html'; }); } }
+
+/* ---------- 🔌 Connect AI (MCP connector) ---------- */
+const BRIDGE = 'http://127.0.0.1:7357';
+const AIC = { page: Math.random().toString(36).slice(2, 10), on: false, state: 'off', agents: [], log: [], inputs: null, polling: false, fails: 0 };
+try { AIC.on = localStorage.getItem('simplecode.connect') === '1'; } catch (e) {}
+const AI_APPS = [
+  { id: 'claude', name: 'Claude Code', icon: '✳️', how: 'Run this in your terminal:', code: `claude mcp add --transport http simplecode ${BRIDGE}/mcp` },
+  { id: 'codex', name: 'Codex', icon: '🧠', how: 'Run this in your terminal:', code: `codex mcp add simplecode --url ${BRIDGE}/mcp` },
+  { id: 'opencode', name: 'OpenCode', icon: '⌬', how: 'Add this to opencode.json (in your project, or ~/.config/opencode/opencode.json):', code: JSON.stringify({ $schema: 'https://opencode.ai/config.json', mcp: { simplecode: { type: 'remote', url: `${BRIDGE}/mcp`, enabled: true } } }, null, 2) },
+  { id: 'openclaw', name: 'OpenClaw', icon: '🦞', how: 'Run this in your terminal (or Settings → MCP → Add server → Streamable HTTP):', code: `openclaw mcp add simplecode --url ${BRIDGE}/mcp --transport streamable-http` },
+  { id: 'gemini', name: 'Gemini CLI', icon: '✦', how: 'Add this to ~/.gemini/settings.json:', code: JSON.stringify({ mcpServers: { simplecode: { httpUrl: `${BRIDGE}/mcp` } } }, null, 2) },
+  { id: 'cursor', name: 'Cursor', icon: '▲', how: 'Add this to ~/.cursor/mcp.json:', code: JSON.stringify({ mcpServers: { simplecode: { url: `${BRIDGE}/mcp` } } }, null, 2) },
+  { id: 'vscode', name: 'VS Code', icon: '🟦', how: 'Run this in your terminal (works with GitHub Copilot agent mode):', code: `code --add-mcp '{"name":"simplecode","type":"http","url":"${BRIDGE}/mcp"}'` },
+  { id: 'windsurf', name: 'Windsurf', icon: '🌊', how: 'Add this to ~/.codeium/windsurf/mcp_config.json:', code: JSON.stringify({ mcpServers: { simplecode: { serverUrl: `${BRIDGE}/mcp` } } }, null, 2) },
+  { id: 'claudedesktop', name: 'Claude Desktop', icon: '💬', how: 'Settings → Developer → Edit Config, then add (needs Node.js):', code: null },
+  { id: 'other', name: 'Any other MCP app', icon: '🧩', how: 'Use the Streamable HTTP address:', code: `${BRIDGE}/mcp`, more: 'Apps that can only run a command can use:  node simplecode-mcp.js --stdio' },
+];
+function scriptPath() { return (window.simpleDesktop && simpleDesktop.connectorPath) || '/Users/YOU/simplecode-mcp.js'; }
+function aiAppCode(a) { return a.code || JSON.stringify({ mcpServers: { simplecode: { command: 'node', args: [scriptPath(), '--stdio'] } } }, null, 2); }
+
+/* what the AI can do — each returns { text } */
+const AI_TOOLS = {
+  get_code: () => ({ text: `Language: ${L().name} (key "${LANG}", files ${L().ext})\nFile: ${$('fname').value}\n\n${ta.value}` }),
+  set_code: (a) => {
+    if (a.language) { const k = findLangKey(a.language); if (!k) return { text: `I don't know the language "${a.language}". Use list_languages.`, isError: true }; if (k !== LANG) setLang(k, true); }
+    if (typeof a.code !== 'string') return { text: 'set_code needs "code".', isError: true };
+    loadText(a.file_name || $('fname').value || 'main', a.code); dirty = true; showTab('console');
+    return { text: `Put ${a.code.split('\n').length} lines of ${L().name} in the editor (${$('fname').value}).` };
+  },
+  run_program: async (a) => {
+    if (typeof a.explain === 'boolean') $('explain').checked = a.explain;
+    AIC.inputs = Array.isArray(a.inputs) ? a.inputs.map(String) : [];
+    let timedOut = false; const t = setTimeout(() => { if (running) { timedOut = true; running.stop(); } }, 20000);
+    try { await run(); } finally { clearTimeout(t); }
+    const wanted = AIC.inputs === 'more'; AIC.inputs = null;
+    const kind = L().kind;
+    let text = conEl.innerText.trim();
+    if (['html', 'css', 'ui'].includes(kind)) text = `${L().name} draws a live preview instead of printing text — the person can see it in the console.\n\n${text}`.trim();
+    if (timedOut) text += '\n\n⏱️ Stopped after 20 seconds (the program might loop forever).';
+    if (wanted) text += '\n\n⌨️ The program asked for more input than you gave in "inputs", so it was stopped.';
+    return { text: text.length > 15000 ? text.slice(0, 15000) + '\n…(cut)' : text || '(nothing was printed)', isError: !!conEl.querySelector('.c-err') };
+  },
+  get_output: () => ({ text: conEl.innerText.trim() || '(the console is empty)' }),
+  list_languages: () => ({ text: LANG_ORDER.map(k => `${k} — ${LANGS[k].name} (${LANGS[k].ext})`).join('\n') + `\n\nCurrent: ${LANG}` }),
+  set_language: (a) => { const k = findLangKey(a.language); if (!k) return { text: `I don't know "${a.language}". Use list_languages.`, isError: true }; setLang(k); return { text: `Switched to ${L().name}. The editor now has:\n\n${ta.value}` }; },
+  convert_code: (a) => {
+    const k = findLangKey(a.to_language); if (!k) return { text: `I don't know "${a.to_language}".`, isError: true };
+    if (!CONVERT_TARGETS.includes(k)) return { text: `The converter can turn programs into: ${CONVERT_TARGETS.join(', ')}.`, isError: true };
+    try { const r = convertProgram(ta.value, LANG, k); return { text: `${LANGS[k].name}:\n\n${r.code}${r.notes && r.notes.length ? '\n\nNotes:\n- ' + r.notes.map(n => String(n).replace(/<[^>]+>/g, '')).join('\n- ') : ''}` }; }
+    catch (e) { return { text: 'Could not convert: ' + String(e.title || e.message || e).replace(/<[^>]+>/g, ''), isError: true }; }
+  },
+  get_cheat_sheet: () => {
+    const s = [...document.querySelectorAll('#sheet [data-sheet]')].find(e => !e.hidden) || $('sheet');
+    const walk = (el) => [...el.childNodes].map(n => {
+      if (n.nodeType === 3) return n.textContent.replace(/\s+/g, ' ');
+      if (n.nodeType !== 1) return '';
+      const t = n.tagName;
+      if (t === 'TR') return '\n' + [...n.children].map(c => walk(c).trim()).join(' | ');
+      if (/^H[1-4]$/.test(t)) return '\n\n## ' + walk(n).trim() + '\n';
+      if (t === 'P' || t === 'LI' || t === 'DIV' || t === 'PRE') return '\n' + (t === 'LI' ? '- ' : '') + (t === 'PRE' ? n.textContent : walk(n).trim());
+      if (t === 'BR') return '\n';
+      return walk(n);
+    }).join('');
+    return { text: walk(s).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 12000) };
+  },
+  list_challenges: () => ({ text: CHALLENGES.map(c => `${c.id}: ${c.t.replace(/^\S+\s/, '')} — ${c.d.replace(/<[^>]+>/g, '')}${chDone[c.id] && chDone[c.id][LANG] ? '  ✅ solved in ' + L().name : ''}`).join('\n') }),
+  check_challenge: async (a) => {
+    if (!CHALLENGES.some(c => c.id === a.id)) return { text: `No challenge "${a.id}". Use list_challenges.`, isError: true };
+    showTab('challenges'); await checkChallenge(a.id); const r = $('chres-' + a.id);
+    return { text: (r && r.innerText.trim()) || 'Checked.', isError: !(r && r.querySelector('.ch-good')) };
+  },
+};
+const AI_VERBS = { get_code: 'is reading your code', set_code: 'wrote code in the editor', run_program: 'is running your program', get_output: 'is reading the console', list_languages: 'is looking at the languages', set_language: 'switched the language', convert_code: 'is converting your code', get_cheat_sheet: 'is reading the cheat sheet', list_challenges: 'is looking at the challenges', check_challenge: 'is checking a challenge' };
+function findLangKey(s) {
+  if (!s) return null; const q = String(s).toLowerCase().replace(/^simple\s+|^simply\s+/, '').trim();
+  if (LANGS[q]) return q;
+  return LANG_ORDER.find(k => [LANGS[k].name, LANGS[k].name.replace(/^Simply? /, ''), LANGS[k].ext.replace('.', '')].some(n => n.toLowerCase() === q)) || ({ python: 'py', 'c++': 'cpp', javascript: 'js', typescript: 'ts', 'c#': 'cs', csharp: 'cs', kotlin: 'kt', rust: 'rs', ruby: 'rb', julia: 'jl', matlab: 'm', micropython: 'mpy', holyc: 'hc', basic: 'bas', lolcode: 'lol', assembly: 'asm', gdscript: 'gd', crystal: 'cr', pascal: 'pas', bash: 'sh', cobol: 'cob', fortran: 'f90', microscript: 'ms', 'java ui': 'javaui', swing: 'javaui', 'visual basic': 'vb', elixir: 'ex', perl: 'pl', brainfuck: 'bf', arduino: 'ino' })[q] || null;
+}
+// typed answers for programs the AI runs
+(function patchAsk() {
+  const orig = con.ask;
+  con.ask = function (req, ctl) {
+    const p = orig.call(this, req, ctl);
+    if (Array.isArray(AIC.inputs)) {
+      const inp = [...conEl.querySelectorAll('input')].pop();
+      if (AIC.inputs.length && inp) { inp.value = AIC.inputs.shift(); inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); }
+      else { AIC.inputs = 'more'; setTimeout(() => ctl && ctl.stop && ctl.stop(), 0); }
+    }
+    return p;
+  };
+})();
+
+async function aiLoop() {
+  if (AIC.polling) return; AIC.polling = true;
+  while (AIC.on) {
+    try {
+      if (AIC.state !== 'ready' && AIC.state !== 'agent') { const st = await (await fetch(BRIDGE + '/status', { cache: 'no-store' })).json(); AIC.fails = 0; AIC.agents = st.agents || []; aiSetState(AIC.agents.length ? 'agent' : 'ready'); }
+      const r = await fetch(BRIDGE + '/poll?page=' + AIC.page + '&focus=' + (document.hasFocus() && document.visibilityState === 'visible' ? 1 : 0), { cache: 'no-store' });
+      if (!r.ok) throw new Error('bad');
+      const { cmd, agents } = await r.json();
+      AIC.fails = 0; AIC.agents = agents || []; aiSetState(AIC.agents.length ? 'agent' : 'ready');
+      if (cmd) {
+        const who = cmd.agent || 'An AI';
+        aiLogAdd(`${who} ${AI_VERBS[cmd.tool] || 'used ' + cmd.tool}`); toast(`🤖 ${who} ${AI_VERBS[cmd.tool] || 'used ' + cmd.tool}`);
+        let result;
+        try { result = await AI_TOOLS[cmd.tool](cmd.args || {}); } catch (e) { result = { text: 'Simple Code hit a problem: ' + (e.message || e), isError: true }; }
+        await fetch(BRIDGE + '/result', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: cmd.id, result }) }).catch(() => {});
+      }
+    } catch (e) {
+      AIC.fails++; aiSetState('waiting');
+      await new Promise(r => setTimeout(r, Math.min(10000, 2000 * AIC.fails)));
+    }
+  }
+  AIC.polling = false; aiSetState('off');
+}
+function aiSetState(s) {
+  if (AIC.state === s && s !== 'agent') return; AIC.state = s;
+  const b = $('aiBtn'); if (b) b.dataset.state = s;
+  const st = $('aiStatus'); if (st) st.innerHTML = aiStatusHtml();
+}
+function aiStatusHtml() {
+  if (!AIC.on) return '<span class="dot off"></span> Off — AI apps can\'t use Simple Code';
+  if (AIC.state === 'waiting') return `<span class="dot wait"></span> Waiting for the connector… ${IS_DESKTOP ? '(it starts with the app — try restarting it)' : '(do step 1)'}`;
+  if (AIC.agents.length) return `<span class="dot on"></span> Connected — ${AIC.agents.map(escapeHtml).join(', ')} can use Simple Code`;
+  return '<span class="dot on"></span> Connector ready — now add it to your AI app (step 2)';
+}
+function aiLogAdd(s) { AIC.log.unshift(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' · ' + s); AIC.log.length = Math.min(AIC.log.length, 30); const el = $('aiLog'); if (el) el.innerHTML = AIC.log.map(l => `<li>${escapeHtml(l)}</li>`).join(''); }
+function aiToggle(on) { AIC.on = on; try { localStorage.setItem('simplecode.connect', on ? '1' : '0'); } catch (e) {} if (on) aiLoop(); else aiSetState('off'); const st = $('aiStatus'); if (st) st.innerHTML = aiStatusHtml(); }
+
+function openConnect() {
+  let m = $('aiModal');
+  if (!m) { m = document.createElement('div'); m.id = 'aiModal'; m.className = 'modal'; document.body.appendChild(m); m.addEventListener('click', e => { if (e.target === m) closeConnect(); }); }
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const step1 = IS_DESKTOP
+    ? '<div class="ai-step"><b>1</b><div><h3>The connector is built in ✅</h3><p>The desktop app runs it for you while it\'s open. Nothing to install.</p></div></div>'
+    : (() => { const win = /Windows/.test(navigator.userAgent); const cmd = win ? `curl.exe -fsSL ${SITE}simplecode-mcp.js -o simplecode-mcp.js; node simplecode-mcp.js` : `curl -fsSL ${SITE}simplecode-mcp.js -o ~/simplecode-mcp.js && node ~/simplecode-mcp.js`; const e = cmd.replace(/&/g, '&amp;'); return `<div class="ai-step"><b>1</b><div><h3>Start the connector</h3><p>It's a tiny helper that lets AI apps talk to this page. It needs <a href="https://nodejs.org" target="_blank" rel="noopener">Node.js</a>. Paste this in ${win ? 'PowerShell' : 'Terminal'} and keep the window open:</p>
+      <div class="ai-code"><pre>${e}</pre><button class="btn small" data-copy="${e}">Copy</button></div>
+      <p class="muted">Or skip this and use the <a href="${RELEASES}SimpleCode-${win ? 'windows.exe' : 'mac.dmg'}">desktop app</a> — it has the connector built in. Chrome may ask to let this site reach "devices on your local network" — say Allow.</p></div></div>`; })();
+  m.innerHTML = `<div class="sharebox aibox" role="dialog" aria-label="Connect AI">
+    <div class="sh-head"><h2>🔌 Connect AI</h2><span class="grow"></span><button class="btn small" data-ai="close" title="Close (Esc)">✕</button></div>
+    <p class="ai-lead">Let AI coding apps like Claude Code, Codex, OpenCode and OpenClaw write and run programs here. You watch everything happen in your editor and console.</p>
+    <label class="ai-switch"><input type="checkbox" id="aiOn" ${AIC.on ? 'checked' : ''}><span class="sw"></span><span><b>Let AI apps use Simple Code</b><small id="aiStatus">${aiStatusHtml()}</small></span></label>
+    ${step1}
+    <div class="ai-step"><b>2</b><div><h3>Add Simple Code to your AI app</h3><p>Pick your app:</p>
+      <div class="ai-apps">${AI_APPS.map((a, i) => `<button data-app="${a.id}"${i ? '' : ' class="on"'}><span>${a.icon}</span>${a.name}</button>`).join('')}</div>
+      <div id="aiHow"></div></div></div>
+    <div class="ai-step"><b>3</b><div><h3>Ask it to code!</h3><p>Try: <i>"Use Simple Code to write a Simple Python guessing game, run it, and fix any errors."</i></p>
+      <details class="ai-tools"><summary>What the AI can do</summary><ul>${[['Read and write the code in your editor', '📝'], ['Run programs and read the console (even answer input questions)', '▶'], ['Switch languages and read the cheat sheet', '🌍'], ['Convert code to another language', '🔄'], ['Try the challenges', '🏆']].map(([t, i]) => `<li>${i} ${t}</li>`).join('')}</ul><p class="muted">It only works while this switch is on and the studio is open. It can't see your files or anything outside Simple Code.</p></details>
+      <h4>Recent AI activity</h4><ul class="ai-log" id="aiLog">${AIC.log.map(l => `<li>${esc(l)}</li>`).join('') || '<li class="muted">Nothing yet</li>'}</ul></div></div>
+  </div>`;
+  const showApp = id => {
+    const a = AI_APPS.find(x => x.id === id); m.querySelectorAll('[data-app]').forEach(b => b.classList.toggle('on', b.dataset.app === id));
+    const code = aiAppCode(a);
+    $('aiHow').innerHTML = `<p>${a.how}</p><div class="ai-code"><pre>${esc(code)}</pre><button class="btn small" data-copy="${esc(code).replace(/"/g, '&quot;')}">Copy</button></div>${a.more ? `<p class="muted">${esc(a.more)}</p>` : ''}${a.id === 'claudedesktop' && !IS_DESKTOP ? '<p class="muted">Change <code>/Users/YOU</code> to your home folder (the file from step 1).</p>' : ''}<p class="muted">Then restart ${a.name} (or start a new chat) so it picks up Simple Code.</p>`;
+  };
+  showApp('claude');
+  m.addEventListener('click', e => {
+    const c = e.target.closest('[data-copy]'); if (c) { copyText(c.dataset.copy, '📋 Copied!'); return; }
+    const ap = e.target.closest('[data-app]'); if (ap) { showApp(ap.dataset.app); return; }
+    if (e.target.closest('[data-ai=close]')) closeConnect();
+  });
+  $('aiOn').addEventListener('change', e => aiToggle(e.target.checked));
+  m.hidden = false; document.body.classList.add('modal-open');
+}
+function closeConnect() { const m = $('aiModal'); if (m) { m.remove(); } document.body.classList.remove('modal-open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('aiModal')) closeConnect(); });
+$('aiBtn').addEventListener('click', openConnect);
+if (AIC.on) aiLoop(); else aiSetState('off');
+const aiFocus = () => { if (AIC.on && AIC.state !== 'waiting' && AIC.state !== 'off') fetch(BRIDGE + '/focus', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ page: AIC.page, focus: document.hasFocus() && document.visibilityState === 'visible' }) }).catch(() => {}); };
+window.addEventListener('focus', aiFocus); window.addEventListener('blur', aiFocus); document.addEventListener('visibilitychange', aiFocus);
 
 (function init() {
   let ex = null, saved = null;

@@ -70,11 +70,36 @@ The **📤 Share** button (next to Convert) opens the sharing area:
   to open it on a phone.
 - **Simple Code**: the website link, its QR code, and the Mac and Windows downloads.
 
+## Connect AI
+
+The **🔌 Connect AI** button lets AI coding apps use Simple Code through MCP (Model Context Protocol):
+Claude Code, Codex, OpenCode, OpenClaw, Gemini CLI, Cursor, VS Code, Windsurf, Claude Desktop and any other MCP app.
+The AI can read and write the code in the editor, run programs (and answer their input questions), read the console,
+switch languages, read the cheat sheet, convert code and try the challenges. You watch it all happen.
+
+1. Turn on **Let AI apps use Simple Code** in the Connect AI panel.
+2. Start the connector. The desktop app has it built in. On the website, run it with Node.js:
+   ```bash
+   curl -fsSL https://simplecodecpp.github.io/simplecode-mcp.js -o ~/simplecode-mcp.js && node ~/simplecode-mcp.js
+   ```
+3. Add it to your AI app. The address is `http://127.0.0.1:7357/mcp` (Streamable HTTP), for example:
+   ```bash
+   claude mcp add --transport http simplecode http://127.0.0.1:7357/mcp
+   ```
+   ```bash
+   codex mcp add simplecode --url http://127.0.0.1:7357/mcp
+   ```
+   The panel shows the setup for every app. Apps that can only start a command can use `node simplecode-mcp.js --stdio`.
+
+The connector only listens on your own computer (127.0.0.1), only the Simple Code site and app can connect to it as a page,
+and other websites are blocked. If you have several Simple Code windows open, the AI works in the one you're looking at.
+
 ## Files
 
 - `index.html`: the main page, with the **Try SimpleCode** button, features, languages, downloads and sharing.
 - `app.html`: the studio itself. Old links like `simplecodecpp.github.io/#py&code=…` still work; the main page sends them on to `app.html`.
 - `logo.svg` and `logo-*.png`: the brand logo and one logo per language.
+- `simplecode-mcp.js`: the AI connector (no packages needed, just Node.js 18+).
 - `desktop/`: the Mac and Windows app.
 
 ## Mac and Windows app
